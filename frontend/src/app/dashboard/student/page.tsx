@@ -19,6 +19,7 @@ import {
   Heart,
   RefreshCw,
   BarChart3,
+  PlayCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -54,6 +55,7 @@ interface Course {
   status: string;
   classroomCode?: string;
   totalLessons: number;
+  thumbnail?: string;
   instructor?: { name: string };
 }
 interface Enrollment {
@@ -161,81 +163,71 @@ export default function StudentDashboard() {
   const future = events
     .filter((e) => new Date(e.date) >= new Date())
     .slice(0, 4);
-  const courseRows = (list: Enrollment[]) => (
-    <div className="ws-table-wrap">
-      <table className="ws-table">
-        <caption className="sr-only">
-          Your enrolled courses and progress
-        </caption>
-        <thead>
-          <tr>
-            <th>Course</th>
-            <th>Progress</th>
-            <th>Status</th>
-            <th>Access</th>
-          </tr>
-        </thead>
-        <tbody>
-          {list.map((e) => (
-            <tr key={e._id}>
-              <td>
-                <h3>{e.course.title}</h3>
-                <p className="ws-small ws-muted">
-                  {e.course.instructor?.name} · {e.course.totalLessons} lessons
-                </p>
-                {e.course.classroomCode && (
-                  <button
-                    className="ws-link mt-2"
-                    onClick={() =>
-                      navigator.clipboard
-                        .writeText(e.course.classroomCode!)
-                        .then(() => toast.success("Classroom code copied"))
-                        .catch(() => toast.error("Copy is unavailable"))
-                    }
-                    aria-label={`Copy classroom code for ${e.course.title}`}
-                  >
-                    <Copy size={12} />
-                    {e.course.classroomCode}
-                  </button>
-                )}
-              </td>
-              <td>
-                <Progress value={e.progressPercentage} />
-              </td>
-              <td>
-                <Badge
-                  tone={
-                    e.isCompleted
-                      ? "success"
-                      : e.course.status !== "published"
-                        ? "warning"
-                        : "neutral"
-                  }
-                >
-                  {e.isCompleted
-                    ? "Completed"
-                    : e.course.status !== "published"
-                      ? "Unavailable"
-                      : "In progress"}
-                </Badge>
-              </td>
-              <td>
-                {e.course.status === "published" ? (
-                  <Link
-                    className="ws-link"
-                    href={`/courses/${e.course._id}/learn`}
-                  >
-                    Continue
-                    <ArrowRight size={14} />
-                  </Link>
-                ) : (
-                  <span className="ws-small ws-muted">Contact instructor</span>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  const courseCards = (list: Enrollment[]) => (
+    <div className="space-course-grid">
+      {list.map((e) => (
+        <article className="space-course-card" key={e._id}>
+          <div className="space-course-cover">
+            {e.course.thumbnail ? (
+              <img src={e.course.thumbnail} alt="" loading="lazy" />
+            ) : (
+              <BookOpen aria-hidden="true" />
+            )}
+            <Badge
+              tone={
+                e.isCompleted
+                  ? "success"
+                  : e.course.status !== "published"
+                    ? "warning"
+                    : "neutral"
+              }
+            >
+              {e.isCompleted
+                ? "Completed"
+                : e.course.status !== "published"
+                  ? "Unavailable"
+                  : "In progress"}
+            </Badge>
+          </div>
+          <div className="space-course-body">
+            <div>
+              <p className="ws-eyebrow mb-2">{e.course.category}</p>
+              <h3>{e.course.title}</h3>
+              <p className="ws-small ws-muted mt-2">
+                {e.course.instructor?.name} · {e.course.totalLessons} lessons
+              </p>
+            </div>
+            <Progress value={e.progressPercentage} />
+            {e.course.classroomCode && (
+              <button
+                className="ws-link"
+                onClick={() =>
+                  navigator.clipboard
+                    .writeText(e.course.classroomCode!)
+                    .then(() => toast.success("Classroom code copied"))
+                    .catch(() => toast.error("Copy is unavailable"))
+                }
+                aria-label={`Copy classroom code for ${e.course.title}`}
+              >
+                <Copy size={12} />
+                {e.course.classroomCode}
+              </button>
+            )}
+            {e.course.status === "published" ? (
+              <Link
+                className="ws-button"
+                href={`/courses/${e.course._id}/learn`}
+              >
+                <PlayCircle size={16} />
+                Continue learning
+                <ArrowRight size={14} />
+              </Link>
+            ) : (
+              <p className="ws-small ws-muted">Contact instructor</p>
+            )}
+          </div>
+        </article>
+      ))}
     </div>
   );
   const metrics = (
@@ -297,7 +289,8 @@ export default function StudentDashboard() {
   return (
     <>
       <PageHeading
-        eyebrow="Student workspace"
+        mascot="student"
+        eyebrow="Scholar command · Student learning suite"
         title={
           tab === "overview"
             ? `Welcome back, ${user?.name?.split(" ")[0] || "learner"}`
@@ -349,7 +342,7 @@ export default function StudentDashboard() {
                 }
               >
                 {current.length ? (
-                  courseRows(current.slice(0, 3))
+                  courseCards(current.slice(0, 3))
                 ) : (
                   <EmptyState
                     title="Your next learning opportunity"
@@ -482,7 +475,7 @@ export default function StudentDashboard() {
                 (filter === "all" ||
                   (filter === "completed" ? e.isCompleted : !e.isCompleted)),
             ).length ? (
-              courseRows(
+              courseCards(
                 enrollments.filter(
                   (e) =>
                     e.course.title

@@ -66,6 +66,7 @@ interface Course {
   category: string;
   level: string;
   classroomCode?: string;
+  thumbnail?: string;
   totalLessons: number;
   totalStudents: number;
   rating?: number;
@@ -183,85 +184,73 @@ export default function InstructorDashboard() {
             reviews: "Reviews & analytics",
           } as Record<string, string>
         )[tab] || "Teaching overview";
-  const courseTable = (
-    <div className="ws-table-wrap">
-      <table className="ws-table">
-        <caption className="sr-only">
-          Your course status and classroom controls
-        </caption>
-        <thead>
-          <tr>
-            <th>Course</th>
-            <th>Status</th>
-            <th>Classroom</th>
-            <th>Manage</th>
-          </tr>
-        </thead>
-        <tbody>
-          {courses.slice(0, 6).map((c) => (
-            <tr key={c._id}>
-              <td>
-                <h3>{c.title}</h3>
-                <p className="ws-small ws-muted">
-                  {c.totalLessons} lessons · {c.totalStudents} enrollments
-                </p>
-              </td>
-              <td>
-                <Badge
-                  tone={
-                    c.status === "published"
-                      ? "success"
-                      : c.status === "pending"
-                        ? "warning"
-                        : "neutral"
-                  }
-                >
-                  {c.status}
-                </Badge>
-              </td>
-              <td>
-                {c.classroomCode ? (
-                  <button
-                    className="ws-link"
-                    onClick={() => copy(c.classroomCode!)}
-                    aria-label={`Copy code for ${c.title}`}
-                  >
-                    <Copy size={13} />
-                    {c.classroomCode}
-                  </button>
-                ) : (
-                  "—"
-                )}
-              </td>
-              <td>
-                <div className="ws-actions">
-                  <Link
-                    className="ws-link"
-                    href={`/dashboard/instructor/courses/${c._id}/edit`}
-                  >
-                    <Pencil size={14} />
-                    Edit
-                  </Link>
-                  <button
-                    className="ws-link"
-                    onClick={() => setResource(c)}
-                    aria-label={`Resources for ${c.title}`}
-                  >
-                    <Library size={14} />
-                    Resources
-                  </button>
-                </div>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+  const courseCards = (
+    <div className="space-course-grid">
+      {courses.slice(0, 6).map((c) => (
+        <article key={c._id} className="space-course-card">
+          <div className="space-course-cover">
+            {c.thumbnail ? (
+              <img src={c.thumbnail} alt="" loading="lazy" />
+            ) : (
+              <BookOpen aria-hidden="true" />
+            )}
+            <Badge
+              tone={
+                c.status === "published"
+                  ? "success"
+                  : c.status === "pending"
+                    ? "warning"
+                    : "neutral"
+              }
+            >
+              {c.status}
+            </Badge>
+          </div>
+          <div className="space-course-body">
+            <div>
+              <p className="ws-eyebrow mb-2">{c.category}</p>
+              <h3>{c.title}</h3>
+              <p className="ws-small ws-muted mt-2">
+                {c.totalLessons} lessons · {c.totalStudents} enrollments
+              </p>
+            </div>
+            {c.classroomCode && (
+              <button
+                className="ws-link"
+                onClick={() => copy(c.classroomCode!)}
+                aria-label={`Copy code for ${c.title}`}
+              >
+                <Copy size={13} />
+                {c.classroomCode}
+              </button>
+            )}
+            <div className="ws-actions">
+              <Link
+                className="ws-link"
+                href={`/dashboard/instructor/courses/${c._id}/edit`}
+              >
+                <Pencil size={14} />
+                Edit
+              </Link>
+              <button
+                className="ws-link"
+                onClick={() => setResource(c)}
+                aria-label={`Resources for ${c.title}`}
+              >
+                <Library size={14} />
+                Resources
+              </button>
+            </div>
+          </div>
+        </article>
+      ))}
     </div>
   );
   return (
     <>
       <PageHeading
-        eyebrow="Instructor workspace"
+        mascot="instructor"
+        eyebrow="Instructor flight command"
         title={title}
         description="Plan your curriculum, support your students and manage classroom work."
         actions={
@@ -327,7 +316,7 @@ export default function InstructorDashboard() {
               }
             >
               {courses.length ? (
-                courseTable
+                courseCards
               ) : (
                 <EmptyState
                   title="Build your first course"

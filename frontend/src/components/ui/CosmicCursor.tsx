@@ -18,7 +18,9 @@ function CosmicCursor() {
 
   useEffect(() => {
     const isTouch = window.matchMedia('(pointer: coarse)').matches;
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
     if (isTouch || prefersReducedMotion) return;
 
     const canvas = canvasRef.current;
@@ -38,7 +40,15 @@ function CosmicCursor() {
       height = canvas.height = window.innerHeight;
     };
 
-    const palette = ['#ffffff', '#38bdf8', '#2dd4bf', '#fbbf24', '#f472b6', '#c084fc', '#e0e7ff'];
+    const palette = [
+      '#ffffff',
+      '#38bdf8',
+      '#2dd4bf',
+      '#fbbf24',
+      '#f472b6',
+      '#c084fc',
+      '#e0e7ff',
+    ];
 
     const handleMouseMove = (e: MouseEvent) => {
       mouse.x = e.clientX;
@@ -77,7 +87,7 @@ function CosmicCursor() {
       outerRadius: number,
       innerRadius: number,
       color: string,
-      rotation: number
+      rotation: number,
     ) {
       context.save();
       context.translate(cx, cy);
@@ -121,8 +131,15 @@ function CosmicCursor() {
     }
 
     let animId: number;
+    let lastFrame = -Infinity;
 
-    const render = () => {
+    const render = (now = performance.now()) => {
+      if (document.hidden) return;
+      if (now - lastFrame < 1000 / 30) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrame = now;
       ctx.clearRect(0, 0, width, height);
 
       // Render & decay sparkling stars
@@ -136,7 +153,16 @@ function CosmicCursor() {
           starTrail.splice(i, 1);
         } else {
           ctx.globalAlpha = p.alpha;
-          drawStar(ctx, p.x, p.y, p.points, p.size, p.size * 0.28, p.color, p.rotation);
+          drawStar(
+            ctx,
+            p.x,
+            p.y,
+            p.points,
+            p.size,
+            p.size * 0.28,
+            p.color,
+            p.rotation,
+          );
         }
       }
 
@@ -154,18 +180,25 @@ function CosmicCursor() {
       }
     };
 
+    const handleVisibility = () => {
+      cancelAnimationFrame(animId);
+      if (!document.hidden) animId = requestAnimationFrame(render);
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
     render();
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseleave', handleMouseLeave);
+      document.removeEventListener('visibilitychange', handleVisibility);
       cancelAnimationFrame(animId);
     };
   }, []);
 
   return (
     <canvas
+      aria-hidden="true"
       ref={canvasRef}
       className="fixed inset-0 w-full h-full pointer-events-none z-[9999] overflow-hidden"
     />

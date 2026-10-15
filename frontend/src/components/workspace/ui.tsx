@@ -1,25 +1,35 @@
 import Link from "next/link";
 import { ArrowRight, BookOpen, RefreshCw } from "lucide-react";
 import type { ReactNode } from "react";
+import AstroMascot from "@/components/ui/AstroMascot";
 export function PageHeading({
   eyebrow,
   title,
   description,
   actions,
+  mascot,
 }: {
   eyebrow?: string;
   title: string;
   description: string;
   actions?: ReactNode;
+  mascot?: "student" | "instructor" | "admin";
 }) {
   return (
-    <header className="ws-heading">
-      <div>
+    <header
+      className={`ws-heading ${mascot ? "space-heading glass-card" : ""}`}
+    >
+      <div className="space-heading-copy">
         {eyebrow && <p className="ws-eyebrow">{eyebrow}</p>}
         <h1>{title}</h1>
         <p className="ws-muted">{description}</p>
       </div>
       {actions && <div className="ws-actions">{actions}</div>}
+      {mascot && (
+        <div className="space-heading-mascot" aria-hidden="true">
+          <AstroMascot role={mascot} className="w-24 h-24 sm:w-28 sm:h-28" />
+        </div>
+      )}
     </header>
   );
 }

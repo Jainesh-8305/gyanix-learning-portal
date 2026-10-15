@@ -5,6 +5,7 @@ import { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/layout/Navbar';
 import AuthBoundary from '@/components/providers/AuthBoundary';
 import AssistantLauncher from '@/components/assistant/AssistantLauncher';
+import SpaceAtmosphere from '@/components/ui/SpaceAtmosphere';
 import SWRProvider from '@/components/providers/SWRProvider';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
@@ -27,6 +28,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <SWRProvider>
+          <SpaceAtmosphere />
           <Navbar />
           <div className="pt-16 relative z-10">
             <AuthBoundary>{children}</AuthBoundary>

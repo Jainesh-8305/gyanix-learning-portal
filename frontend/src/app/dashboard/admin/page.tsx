@@ -35,7 +35,8 @@ export default function AdminDashboard() {
   return (
     <>
       <PageHeading
-        eyebrow="Administrator workspace"
+        mascot="admin"
+        eyebrow="Academy control center"
         title="Platform overview"
         description="Manage people, review course submissions and keep learning accessible."
         actions={

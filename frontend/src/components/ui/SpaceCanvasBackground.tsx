@@ -170,6 +170,8 @@ function SpaceCanvasBackground({
       if (!canvas) return;
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
+      cancelAnimationFrame(animId);
+      animId = requestAnimationFrame(render);
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -224,7 +226,7 @@ function SpaceCanvasBackground({
     };
 
     const handleClick = (e: MouseEvent) => {
-      if (intensity === 'minimal') return;
+      if (intensity === 'minimal' || prefersReducedMotion) return;
       triggerStarBurst(e.clientX, e.clientY, 20);
     };
 
@@ -241,17 +243,18 @@ function SpaceCanvasBackground({
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('click', handleClick);
 
-    if (pathname?.startsWith('/certificates')) {
-      setTimeout(() => {
-        triggerStarBurst(width / 2, height / 3, 50, [
-          '#fbbf24',
-          '#f59e0b',
-          '#2dd4bf',
-          '#ffffff',
-          '#c6a664',
-        ]);
-      }, 400);
-    }
+    const celebrationTimer =
+      pathname?.startsWith('/certificates') && !prefersReducedMotion
+        ? setTimeout(() => {
+            triggerStarBurst(width / 2, height / 3, 50, [
+              '#fbbf24',
+              '#f59e0b',
+              '#2dd4bf',
+              '#ffffff',
+              '#c6a664',
+            ]);
+          }, 400)
+        : undefined;
 
     // ── 1. Starfield Particles with 4-point Diamond Cross Stars ─────────
     const starCount =
@@ -683,9 +686,16 @@ function SpaceCanvasBackground({
       context.restore();
     }
 
-    // ── MAIN RENDER LOOP (60 FPS) ─────────────────────────────────────
+    // Cap decorative rendering at 30 fps; reduced-motion users get a still scene.
+    let lastFrame = -Infinity;
 
-    const render = () => {
+    const render = (now = performance.now()) => {
+      if (document.hidden) return;
+      if (now - lastFrame < 1000 / 30) {
+        animId = requestAnimationFrame(render);
+        return;
+      }
+      lastFrame = now;
       ctx.clearRect(0, 0, width, height);
 
       mouse.x += (mouse.targetX - mouse.x) * 0.05;
@@ -956,7 +966,7 @@ function SpaceCanvasBackground({
         }
       }
 
-      if (!document.hidden) {
+      if (!document.hidden && !prefersReducedMotion) {
         animId = requestAnimationFrame(render);
       }
     };
@@ -978,12 +988,14 @@ function SpaceCanvasBackground({
       window.removeEventListener('gyanix:ai-start', handleAiStart);
       window.removeEventListener('gyanix:ai-end', handleAiEnd);
       document.removeEventListener('visibilitychange', handleVisibility);
+      clearTimeout(celebrationTimer);
       cancelAnimationFrame(animId);
     };
   }, [intensity, pathname]);
 
   return (
     <canvas
+      aria-hidden="true"
       ref={canvasRef}
       className="fixed inset-0 w-full h-full pointer-events-none z-[1] overflow-hidden"
     />
