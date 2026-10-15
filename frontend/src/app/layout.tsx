@@ -3,28 +3,35 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/layout/Navbar';
-import SpaceCanvasBackground from '@/components/ui/SpaceCanvasBackground';
-import CosmicCursor from '@/components/ui/CosmicCursor';
+import AuthBoundary from '@/components/providers/AuthBoundary';
+import AssistantLauncher from '@/components/assistant/AssistantLauncher';
 import SWRProvider from '@/components/providers/SWRProvider';
 
 const inter = Inter({ subsets: ['latin'], display: 'swap' });
 
 export const metadata: Metadata = {
   title: 'Gyanix-Academy — Advanced Intelligent Learning Ecosystem',
-  description: 'The world’s premier AI-powered learning platform with verified industry certifications.',
+  description:
+    'A college learning portal for courses, assessments, notes and study practice. Course completion certificates are issued by this project.',
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.className} bg-[#05060f] relative overflow-x-hidden`} suppressHydrationWarning>
+      <body
+        className={`${inter.className} bg-[#05060f] relative overflow-x-hidden`}
+        suppressHydrationWarning
+      >
         <SWRProvider>
-          <SpaceCanvasBackground />
-          <CosmicCursor />
           <Navbar />
           <div className="pt-16 relative z-10">
-            {children}
+            <AuthBoundary>{children}</AuthBoundary>
           </div>
+          <AssistantLauncher />
           <Toaster
             position="top-right"
             toastOptions={{

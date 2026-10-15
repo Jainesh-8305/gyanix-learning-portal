@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useEffect, useRef, memo } from 'react';
@@ -11,28 +10,113 @@ interface SpaceCanvasBackgroundProps {
 }
 
 interface PlanetDef {
-  orbitRX: number; orbitRY: number; orbitCX: number; orbitCY: number;
-  startAngle: number; speed: number; radius: number;
-  colors: [string, string, string]; glow: string;
-  hasRing: boolean; ringColor: string; ringColor2: string;
-  tilt: number; drawOrbit: boolean;
+  orbitRX: number;
+  orbitRY: number;
+  orbitCX: number;
+  orbitCY: number;
+  startAngle: number;
+  speed: number;
+  radius: number;
+  colors: [string, string, string];
+  glow: string;
+  hasRing: boolean;
+  ringColor: string;
+  ringColor2: string;
+  tilt: number;
+  drawOrbit: boolean;
 }
 
 const PLANETS: PlanetDef[] = [
   // 1. Orange Sun-like – large, orbits upper-right corner
-  { orbitRX: 0.25, orbitRY: 0.14, orbitCX: 0.75, orbitCY: 0.2, startAngle: 0.4, speed: 0.0008, radius: 90, colors: ['#fef9c3', '#fb923c', '#7c2d12'], glow: '#f97316', hasRing: false, ringColor: '', ringColor2: '', tilt: 0, drawOrbit: false },
+  {
+    orbitRX: 0.25,
+    orbitRY: 0.14,
+    orbitCX: 0.75,
+    orbitCY: 0.2,
+    startAngle: 0.4,
+    speed: 0.0008,
+    radius: 90,
+    colors: ['#fef9c3', '#fb923c', '#7c2d12'],
+    glow: '#f97316',
+    hasRing: false,
+    ringColor: '',
+    ringColor2: '',
+    tilt: 0,
+    drawOrbit: false,
+  },
   // 2. Cyan-teal Saturn-ring – mid-size, orbits left-mid
-  { orbitRX: 0.2, orbitRY: 0.12, orbitCX: 0.2, orbitCY: 0.42, startAngle: 2.1, speed: 0.0006, radius: 70, colors: ['#a5f3fc', '#0891b2', '#164e63'], glow: '#22d3ee', hasRing: true, ringColor: 'rgba(103,232,249,0.75)', ringColor2: 'rgba(251,146,60,0.65)', tilt: -0.45, drawOrbit: true },
+  {
+    orbitRX: 0.2,
+    orbitRY: 0.12,
+    orbitCX: 0.2,
+    orbitCY: 0.42,
+    startAngle: 2.1,
+    speed: 0.0006,
+    radius: 70,
+    colors: ['#a5f3fc', '#0891b2', '#164e63'],
+    glow: '#22d3ee',
+    hasRing: true,
+    ringColor: 'rgba(103,232,249,0.75)',
+    ringColor2: 'rgba(251,146,60,0.65)',
+    tilt: -0.45,
+    drawOrbit: true,
+  },
   // 3. Hot pink – medium, orbits bottom-right
-  { orbitRX: 0.22, orbitRY: 0.1, orbitCX: 0.8, orbitCY: 0.75, startAngle: 3.5, speed: 0.001, radius: 60, colors: ['#fce7f3', '#ec4899', '#831843'], glow: '#f472b6', hasRing: false, ringColor: '', ringColor2: '', tilt: 0, drawOrbit: false },
+  {
+    orbitRX: 0.22,
+    orbitRY: 0.1,
+    orbitCX: 0.8,
+    orbitCY: 0.75,
+    startAngle: 3.5,
+    speed: 0.001,
+    radius: 60,
+    colors: ['#fce7f3', '#ec4899', '#831843'],
+    glow: '#f472b6',
+    hasRing: false,
+    ringColor: '',
+    ringColor2: '',
+    tilt: 0,
+    drawOrbit: false,
+  },
   // 4. Purple-violet ringed – large, orbits lower-left
-  { orbitRX: 0.18, orbitRY: 0.1, orbitCX: 0.2, orbitCY: 0.76, startAngle: 1.2, speed: 0.0005, radius: 78, colors: ['#ede9fe', '#7c3aed', '#2e1065'], glow: '#a855f7', hasRing: true, ringColor: 'rgba(192,132,252,0.75)', ringColor2: 'rgba(244,114,182,0.65)', tilt: 0.35, drawOrbit: true },
+  {
+    orbitRX: 0.18,
+    orbitRY: 0.1,
+    orbitCX: 0.2,
+    orbitCY: 0.76,
+    startAngle: 1.2,
+    speed: 0.0005,
+    radius: 78,
+    colors: ['#ede9fe', '#7c3aed', '#2e1065'],
+    glow: '#a855f7',
+    hasRing: true,
+    ringColor: 'rgba(192,132,252,0.75)',
+    ringColor2: 'rgba(244,114,182,0.65)',
+    tilt: 0.35,
+    drawOrbit: true,
+  },
   // 5. Small teal-green – top-left accent
-  { orbitRX: 0.1, orbitRY: 0.06, orbitCX: 0.12, orbitCY: 0.14, startAngle: 5.0, speed: 0.0014, radius: 42, colors: ['#bbf7d0', '#10b981', '#064e3b'], glow: '#34d399', hasRing: false, ringColor: '', ringColor2: '', tilt: 0, drawOrbit: false },
+  {
+    orbitRX: 0.1,
+    orbitRY: 0.06,
+    orbitCX: 0.12,
+    orbitCY: 0.14,
+    startAngle: 5.0,
+    speed: 0.0014,
+    radius: 42,
+    colors: ['#bbf7d0', '#10b981', '#064e3b'],
+    glow: '#34d399',
+    hasRing: false,
+    ringColor: '',
+    ringColor2: '',
+    tilt: 0,
+    drawOrbit: false,
+  },
 ];
 
-
-function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) {
+function SpaceCanvasBackground({
+  forcedIntensity,
+}: SpaceCanvasBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pathname = usePathname();
 
@@ -41,7 +125,8 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
     if (pathname === '/') return 'full';
     if (pathname?.startsWith('/certificates')) return 'full';
     if (pathname?.includes('/quiz')) return 'minimal';
-    if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/profile')) return 'subtle';
+    if (pathname?.startsWith('/dashboard') || pathname?.startsWith('/profile'))
+      return 'subtle';
     if (
       pathname?.startsWith('/login') ||
       pathname?.startsWith('/register') ||
@@ -61,7 +146,9 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
     const isTouchDevice = window.matchMedia('(pointer: coarse)').matches;
 
     let animId: number;
@@ -104,8 +191,20 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       rotSpeed: number;
     }> = [];
 
-    const triggerStarBurst = (x: number, y: number, count = 25, colors?: string[]) => {
-      const palette = colors || ['#38bdf8', '#2dd4bf', '#fbbf24', '#f472b6', '#a78bfa', '#ffffff'];
+    const triggerStarBurst = (
+      x: number,
+      y: number,
+      count = 25,
+      colors?: string[],
+    ) => {
+      const palette = colors || [
+        '#38bdf8',
+        '#2dd4bf',
+        '#fbbf24',
+        '#f472b6',
+        '#a78bfa',
+        '#ffffff',
+      ];
       for (let i = 0; i < count; i++) {
         const angle = Math.random() * Math.PI * 2;
         const speed = Math.random() * 5 + 1.5;
@@ -129,8 +228,12 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       triggerStarBurst(e.clientX, e.clientY, 20);
     };
 
-    const handleAiStart = () => { isAiThinking = true; };
-    const handleAiEnd = () => { isAiThinking = false; };
+    const handleAiStart = () => {
+      isAiThinking = true;
+    };
+    const handleAiEnd = () => {
+      isAiThinking = false;
+    };
     window.addEventListener('gyanix:ai-start', handleAiStart);
     window.addEventListener('gyanix:ai-end', handleAiEnd);
 
@@ -140,13 +243,34 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
 
     if (pathname?.startsWith('/certificates')) {
       setTimeout(() => {
-        triggerStarBurst(width / 2, height / 3, 50, ['#fbbf24', '#f59e0b', '#2dd4bf', '#ffffff', '#c6a664']);
+        triggerStarBurst(width / 2, height / 3, 50, [
+          '#fbbf24',
+          '#f59e0b',
+          '#2dd4bf',
+          '#ffffff',
+          '#c6a664',
+        ]);
       }, 400);
     }
 
     // ── 1. Starfield Particles with 4-point Diamond Cross Stars ─────────
-    const starCount = intensity === 'full' ? 280 : intensity === 'medium' ? 180 : intensity === 'subtle' ? 110 : 60;
-    const starPalette = ['#ffffff', '#bae6fd', '#c7d2fe', '#fef08a', '#fbcfe8', '#a7f3d0', '#e0e7ff'];
+    const starCount =
+      intensity === 'full'
+        ? 280
+        : intensity === 'medium'
+          ? 180
+          : intensity === 'subtle'
+            ? 110
+            : 60;
+    const starPalette = [
+      '#ffffff',
+      '#bae6fd',
+      '#c7d2fe',
+      '#fef08a',
+      '#fbcfe8',
+      '#a7f3d0',
+      '#e0e7ff',
+    ];
 
     interface Star {
       x: number;
@@ -181,7 +305,8 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
     });
 
     // ── 2. Shooting Comets / Meteors ──────────────────────────────────
-    const meteorCount = intensity === 'full' ? 3 : intensity === 'medium' ? 2 : 1;
+    const meteorCount =
+      intensity === 'full' ? 3 : intensity === 'medium' ? 2 : 1;
     const meteors = Array.from({ length: meteorCount }, () => ({
       x: Math.random() * width,
       y: Math.random() * height * 0.4,
@@ -195,10 +320,30 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
 
     // ── 3. Nebula Cloud Physics (Matching Attached Reference Images) ───
     const nebulaClouds = [
-      { x: width * 0.25, y: height * 0.3, radius: width * 0.35, color: 'rgba(99, 102, 241, 0.14)' }, // Indigo
-      { x: width * 0.75, y: height * 0.4, radius: width * 0.4, color: 'rgba(236, 72, 153, 0.12)' }, // Magenta/Pink (Ref 2/3)
-      { x: width * 0.5, y: height * 0.8, radius: width * 0.45, color: 'rgba(6, 182, 212, 0.13)' },  // Neon Cyan (Ref 2/3)
-      { x: width * 0.85, y: height * 0.2, radius: width * 0.3, color: 'rgba(168, 85, 247, 0.12)' }, // Purple
+      {
+        x: width * 0.25,
+        y: height * 0.3,
+        radius: width * 0.35,
+        color: 'rgba(99, 102, 241, 0.14)',
+      }, // Indigo
+      {
+        x: width * 0.75,
+        y: height * 0.4,
+        radius: width * 0.4,
+        color: 'rgba(236, 72, 153, 0.12)',
+      }, // Magenta/Pink (Ref 2/3)
+      {
+        x: width * 0.5,
+        y: height * 0.8,
+        radius: width * 0.45,
+        color: 'rgba(6, 182, 212, 0.13)',
+      }, // Neon Cyan (Ref 2/3)
+      {
+        x: width * 0.85,
+        y: height * 0.2,
+        radius: width * 0.3,
+        color: 'rgba(168, 85, 247, 0.12)',
+      }, // Purple
     ];
 
     const planetAngles = PLANETS.map((p) => p.startAngle);
@@ -214,7 +359,7 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       cy: number,
       size: number,
       color: string,
-      alpha: number
+      alpha: number,
     ) {
       context.save();
       context.translate(cx, cy);
@@ -243,12 +388,24 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
     }
 
     // Draw Giant Celestial Moon / Planet (Matching Image 3)
-    function drawCelestialOrb(context: CanvasRenderingContext2D, x: number, y: number, radius: number) {
+    function drawCelestialOrb(
+      context: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      radius: number,
+    ) {
       context.save();
       context.translate(x, y);
 
       // Outer Atmospheric Glowing Halo
-      const outerGlow = context.createRadialGradient(0, 0, radius * 0.85, 0, 0, radius * 1.5);
+      const outerGlow = context.createRadialGradient(
+        0,
+        0,
+        radius * 0.85,
+        0,
+        0,
+        radius * 1.5,
+      );
       outerGlow.addColorStop(0, 'rgba(147, 51, 234, 0.28)');
       outerGlow.addColorStop(0.5, 'rgba(56, 189, 248, 0.15)');
       outerGlow.addColorStop(1, 'transparent');
@@ -258,7 +415,14 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       context.fill();
 
       // Planet Sphere with Cosmic Nebula Gradient
-      const planetGrad = context.createRadialGradient(-radius * 0.35, -radius * 0.35, radius * 0.1, 0, 0, radius);
+      const planetGrad = context.createRadialGradient(
+        -radius * 0.35,
+        -radius * 0.35,
+        radius * 0.1,
+        0,
+        0,
+        radius,
+      );
       planetGrad.addColorStop(0, '#38bdf8');
       planetGrad.addColorStop(0.35, '#6366f1');
       planetGrad.addColorStop(0.7, '#3b0764');
@@ -279,7 +443,13 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
     }
 
     // Draw Cosmic Astronaut Floating in Nebula Ocean
-    function drawCosmicAstronaut(context: CanvasRenderingContext2D, x: number, y: number, scale: number, alpha = 1) {
+    function drawCosmicAstronaut(
+      context: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+      alpha = 1,
+    ) {
       context.save();
       context.globalAlpha = alpha;
       context.translate(x, y);
@@ -361,13 +531,26 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
     }
 
     // Draw individual planet with rings, glow, sphere, and highlight
-    function drawPlanet(context: CanvasRenderingContext2D, px: number, py: number, def: PlanetDef, globalAlpha: number) {
+    function drawPlanet(
+      context: CanvasRenderingContext2D,
+      px: number,
+      py: number,
+      def: PlanetDef,
+      globalAlpha: number,
+    ) {
       context.save();
       context.globalAlpha = globalAlpha;
       const r = def.radius;
 
       // Outer glow halo — massive, atmospheric
-      const halo = context.createRadialGradient(px, py, r * 0.5, px, py, r * 3.5);
+      const halo = context.createRadialGradient(
+        px,
+        py,
+        r * 0.5,
+        px,
+        py,
+        r * 3.5,
+      );
       halo.addColorStop(0, def.glow + '55');
       halo.addColorStop(0.4, def.glow + '22');
       halo.addColorStop(1, 'transparent');
@@ -390,7 +573,14 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       }
 
       // Planet sphere with rich radial gradient
-      const grad = context.createRadialGradient(px - r * 0.35, py - r * 0.35, r * 0.05, px, py, r);
+      const grad = context.createRadialGradient(
+        px - r * 0.35,
+        py - r * 0.35,
+        r * 0.05,
+        px,
+        py,
+        r,
+      );
       grad.addColorStop(0, def.colors[0]);
       grad.addColorStop(0.45, def.colors[1]);
       grad.addColorStop(1, def.colors[2]);
@@ -409,7 +599,15 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       // Specular highlight — bright white flare
       context.fillStyle = 'rgba(255,255,255,0.28)';
       context.beginPath();
-      context.ellipse(px - r * 0.3, py - r * 0.32, r * 0.28, r * 0.2, -0.65, 0, Math.PI * 2);
+      context.ellipse(
+        px - r * 0.3,
+        py - r * 0.32,
+        r * 0.28,
+        r * 0.2,
+        -0.65,
+        0,
+        Math.PI * 2,
+      );
       context.fill();
 
       // Front ring half (rendered IN FRONT of planet)
@@ -429,21 +627,37 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
     }
 
     // Draw dashed elliptical orbit path
-    function drawOrbitPath(context: CanvasRenderingContext2D, def: PlanetDef, alpha: number) {
+    function drawOrbitPath(
+      context: CanvasRenderingContext2D,
+      def: PlanetDef,
+      alpha: number,
+    ) {
       context.save();
       context.globalAlpha = alpha;
       context.strokeStyle = 'rgba(255,255,255,0.08)';
       context.lineWidth = 1;
       context.setLineDash([4, 12]);
       context.beginPath();
-      context.ellipse(def.orbitCX * width, def.orbitCY * height, def.orbitRX * width, def.orbitRY * height, 0, 0, Math.PI * 2);
+      context.ellipse(
+        def.orbitCX * width,
+        def.orbitCY * height,
+        def.orbitRX * width,
+        def.orbitRY * height,
+        0,
+        0,
+        Math.PI * 2,
+      );
       context.stroke();
       context.setLineDash([]);
       context.restore();
     }
 
     // Draw Undulating Cosmic Waves / Ocean
-    function drawCosmicNebulaOcean(context: CanvasRenderingContext2D, time: number, alpha: number) {
+    function drawCosmicNebulaOcean(
+      context: CanvasRenderingContext2D,
+      time: number,
+      alpha: number,
+    ) {
       if (alpha <= 0) return;
       context.save();
       context.globalAlpha = alpha;
@@ -457,7 +671,10 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       context.moveTo(0, height);
       context.lineTo(0, waveY);
       for (let x = 0; x <= width; x += 30) {
-        const y = waveY + Math.sin(x * 0.005 + time * 0.8) * 16 + Math.cos(x * 0.01 - time * 0.5) * 8;
+        const y =
+          waveY +
+          Math.sin(x * 0.005 + time * 0.8) * 16 +
+          Math.cos(x * 0.01 - time * 0.5) * 8;
         context.lineTo(x, y);
       }
       context.lineTo(width, height);
@@ -480,32 +697,80 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       waveTime += 0.015;
 
       // Per-intensity alpha multipliers — planets are ALWAYS bold and visible
-      const nebulaAlpha = intensity === 'full' ? 1 : intensity === 'medium' ? 0.9 : intensity === 'subtle' ? 0.7 : 0;
-      const planetAlpha = intensity === 'full' ? 1 : intensity === 'medium' ? 1 : intensity === 'subtle' ? 0.95 : 0;
-      const orbAlpha   = intensity === 'full' ? 1 : intensity === 'medium' ? 0.9 : intensity === 'subtle' ? 0.7 : 0;
-      const astroAlpha = intensity === 'full' ? 1 : intensity === 'medium' ? 1 : intensity === 'subtle' ? 0.85 : 0;
-      const waveAlpha  = intensity === 'full' ? 1 : intensity === 'medium' ? 0.7 : 0;
+      const nebulaAlpha =
+        intensity === 'full'
+          ? 1
+          : intensity === 'medium'
+            ? 0.9
+            : intensity === 'subtle'
+              ? 0.7
+              : 0;
+      const planetAlpha =
+        intensity === 'full'
+          ? 1
+          : intensity === 'medium'
+            ? 1
+            : intensity === 'subtle'
+              ? 0.95
+              : 0;
+      const orbAlpha =
+        intensity === 'full'
+          ? 1
+          : intensity === 'medium'
+            ? 0.9
+            : intensity === 'subtle'
+              ? 0.7
+              : 0;
+      const astroAlpha =
+        intensity === 'full'
+          ? 1
+          : intensity === 'medium'
+            ? 1
+            : intensity === 'subtle'
+              ? 0.85
+              : 0;
+      const waveAlpha =
+        intensity === 'full' ? 1 : intensity === 'medium' ? 0.7 : 0;
 
       // ── Layer 1: Cosmic Nebula Clouds ────────────────────────────────
       if (nebulaAlpha > 0) {
         nebulaClouds.forEach((cloud, i) => {
-          const shiftX = Math.sin(waveTime * 0.4 + i) * 20 - parallaxX * (i + 1) * 0.5;
-          const shiftY = Math.cos(waveTime * 0.3 + i) * 15 - parallaxY * (i + 1) * 0.5;
+          const shiftX =
+            Math.sin(waveTime * 0.4 + i) * 20 - parallaxX * (i + 1) * 0.5;
+          const shiftY =
+            Math.cos(waveTime * 0.3 + i) * 15 - parallaxY * (i + 1) * 0.5;
           const radGrad = ctx.createRadialGradient(
-            cloud.x + shiftX, cloud.y + shiftY, 0,
-            cloud.x + shiftX, cloud.y + shiftY, cloud.radius
+            cloud.x + shiftX,
+            cloud.y + shiftY,
+            0,
+            cloud.x + shiftX,
+            cloud.y + shiftY,
+            cloud.radius,
           );
           radGrad.addColorStop(0, cloud.color);
-          radGrad.addColorStop(0.6, cloud.color.replace('0.1', '0.04').replace('0.12', '0.05'));
+          radGrad.addColorStop(
+            0.6,
+            cloud.color.replace('0.1', '0.04').replace('0.12', '0.05'),
+          );
           radGrad.addColorStop(1, 'transparent');
-          ctx.save(); ctx.globalAlpha = nebulaAlpha; ctx.fillStyle = radGrad; ctx.fillRect(0, 0, width, height); ctx.restore();
+          ctx.save();
+          ctx.globalAlpha = nebulaAlpha;
+          ctx.fillStyle = radGrad;
+          ctx.fillRect(0, 0, width, height);
+          ctx.restore();
         });
       }
 
       // ── Layer 2: Background Celestial Orb ────────────────────────────
       if (orbAlpha > 0) {
-        ctx.save(); ctx.globalAlpha = orbAlpha;
-        drawCelestialOrb(ctx, width * 0.82 - parallaxX * 1.2, height * 0.28 - parallaxY * 1.2, width * (intensity === 'subtle' ? 0.1 : 0.16));
+        ctx.save();
+        ctx.globalAlpha = orbAlpha;
+        drawCelestialOrb(
+          ctx,
+          width * 0.82 - parallaxX * 1.2,
+          height * 0.28 - parallaxY * 1.2,
+          width * (intensity === 'subtle' ? 0.1 : 0.16),
+        );
         ctx.restore();
       }
 
@@ -540,7 +805,11 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
         let scaleBoost = 1;
         let alphaBoost = 1;
 
-        if (!prefersReducedMotion && !isTouchDevice && intensity !== 'minimal') {
+        if (
+          !prefersReducedMotion &&
+          !isTouchDevice &&
+          intensity !== 'minimal'
+        ) {
           const dx = mouse.x - currentX;
           const dy = mouse.y - currentY;
           const dist = Math.sqrt(dx * dx + dy * dy);
@@ -558,7 +827,14 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
 
         if (star.isCrossStar) {
           // Render radiant 4-point cross diamond star (✦)
-          drawCrossStar(ctx, currentX, currentY, star.size * 1.8 * scaleBoost, star.color, finalAlpha);
+          drawCrossStar(
+            ctx,
+            currentX,
+            currentY,
+            star.size * 1.8 * scaleBoost,
+            star.color,
+            finalAlpha,
+          );
         } else {
           // Standard twinkling stardust
           ctx.fillStyle = star.color;
@@ -573,7 +849,9 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
 
       // ── Layer 5: Orbit Paths (dashed ellipses) ────────────────────────
       if (planetAlpha > 0 && !prefersReducedMotion) {
-        PLANETS.forEach((def) => { if (def.drawOrbit) drawOrbitPath(ctx, def, planetAlpha * 0.6); });
+        PLANETS.forEach((def) => {
+          if (def.drawOrbit) drawOrbitPath(ctx, def, planetAlpha * 0.6);
+        });
       }
 
       // ── Layer 6: Orbiting Colorful Planets ────────────────────────────
@@ -581,8 +859,14 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
         PLANETS.forEach((def, i) => {
           if (!prefersReducedMotion) planetAngles[i] += def.speed;
           const angle = planetAngles[i];
-          const px = def.orbitCX * width + Math.cos(angle) * def.orbitRX * width - parallaxX * 1.4;
-          const py = def.orbitCY * height + Math.sin(angle) * def.orbitRY * height - parallaxY * 1.4;
+          const px =
+            def.orbitCX * width +
+            Math.cos(angle) * def.orbitRX * width -
+            parallaxX * 1.4;
+          const py =
+            def.orbitCY * height +
+            Math.sin(angle) * def.orbitRY * height -
+            parallaxY * 1.4;
           drawPlanet(ctx, px, py, def, planetAlpha);
         });
       }
@@ -592,18 +876,45 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
         meteors.forEach((m) => {
           if (!m.active) {
             m.delay--;
-            if (m.delay <= 0) { m.active = true; m.x = Math.random() * width * 0.8 + width * 0.1; m.y = Math.random() * height * 0.35; m.alpha = 1; m.delay = Math.random() * 400 + 200; }
+            if (m.delay <= 0) {
+              m.active = true;
+              m.x = Math.random() * width * 0.8 + width * 0.1;
+              m.y = Math.random() * height * 0.35;
+              m.alpha = 1;
+              m.delay = Math.random() * 400 + 200;
+            }
           } else {
-            m.x += Math.cos(m.angle) * m.speed; m.y += Math.sin(m.angle) * m.speed; m.alpha -= 0.014;
-            if (m.alpha <= 0) { m.active = false; }
-            else {
-              const cometGrad = ctx.createLinearGradient(m.x, m.y, m.x - Math.cos(m.angle) * m.length, m.y - Math.sin(m.angle) * m.length);
+            m.x += Math.cos(m.angle) * m.speed;
+            m.y += Math.sin(m.angle) * m.speed;
+            m.alpha -= 0.014;
+            if (m.alpha <= 0) {
+              m.active = false;
+            } else {
+              const cometGrad = ctx.createLinearGradient(
+                m.x,
+                m.y,
+                m.x - Math.cos(m.angle) * m.length,
+                m.y - Math.sin(m.angle) * m.length,
+              );
               cometGrad.addColorStop(0, `rgba(255, 255, 255, ${m.alpha})`);
-              cometGrad.addColorStop(0.3, `rgba(236, 72, 153, ${m.alpha * 0.8})`);
-              cometGrad.addColorStop(0.7, `rgba(56, 189, 248, ${m.alpha * 0.5})`);
+              cometGrad.addColorStop(
+                0.3,
+                `rgba(236, 72, 153, ${m.alpha * 0.8})`,
+              );
+              cometGrad.addColorStop(
+                0.7,
+                `rgba(56, 189, 248, ${m.alpha * 0.5})`,
+              );
               cometGrad.addColorStop(1, 'transparent');
-              ctx.strokeStyle = cometGrad; ctx.lineWidth = 2;
-              ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x - Math.cos(m.angle) * m.length, m.y - Math.sin(m.angle) * m.length); ctx.stroke();
+              ctx.strokeStyle = cometGrad;
+              ctx.lineWidth = 2;
+              ctx.beginPath();
+              ctx.moveTo(m.x, m.y);
+              ctx.lineTo(
+                m.x - Math.cos(m.angle) * m.length,
+                m.y - Math.sin(m.angle) * m.length,
+              );
+              ctx.stroke();
             }
           }
         });
@@ -613,9 +924,18 @@ function SpaceCanvasBackground({ forcedIntensity }: SpaceCanvasBackgroundProps) 
       if (!prefersReducedMotion && astroAlpha > 0) {
         astroAngle += 0.008;
         const floatY = Math.sin(astroAngle) * 14;
-        const astroScale = intensity === 'full' ? 1.15 : intensity === 'medium' ? 0.9 : 0.75;
-        const astroX = intensity === 'full' ? width * 0.16 - parallaxX * 2 : intensity === 'medium' ? width * 0.1 - parallaxX * 1.5 : width * 0.06 - parallaxX;
-        const astroY = (intensity === 'full' ? height * 0.42 : height * 0.38) + floatY - parallaxY * 2;
+        const astroScale =
+          intensity === 'full' ? 1.15 : intensity === 'medium' ? 0.9 : 0.75;
+        const astroX =
+          intensity === 'full'
+            ? width * 0.16 - parallaxX * 2
+            : intensity === 'medium'
+              ? width * 0.1 - parallaxX * 1.5
+              : width * 0.06 - parallaxX;
+        const astroY =
+          (intensity === 'full' ? height * 0.42 : height * 0.38) +
+          floatY -
+          parallaxY * 2;
         drawCosmicAstronaut(ctx, astroX, astroY, astroScale, astroAlpha);
       }
 

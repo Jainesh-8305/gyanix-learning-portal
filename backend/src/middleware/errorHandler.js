@@ -4,6 +4,14 @@
 const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode || 500;
   let message = err.message || 'Internal Server Error';
+  if (err.name === 'CastError') {
+    statusCode = 400;
+    message = 'Invalid identifier or value';
+  }
+  if (err instanceof SyntaxError || err.name === 'MulterError') {
+    statusCode = 400;
+    message = 'Invalid request or upload limit exceeded';
+  }
 
   // Mongoose duplicate key
   if (err.code === 11000) {
@@ -14,7 +22,9 @@ const errorHandler = (err, req, res, _next) => {
 
   // Mongoose validation error
   if (err.name === 'ValidationError') {
-    message = Object.values(err.errors).map(e => e.message).join('. ');
+    message = Object.values(err.errors)
+      .map((e) => e.message)
+      .join('. ');
     statusCode = 400;
   }
 
@@ -28,12 +38,13 @@ const errorHandler = (err, req, res, _next) => {
     statusCode = 401;
   }
 
-  // External payment gateway errors (Stripe) must NEVER return 401
-  if (err.type?.startsWith('Stripe') || err.name?.startsWith('Stripe') || err.rawType) {
-    statusCode = 502;
-    message = `Payment service error: ${err.message || 'Unable to connect to payment provider'}`;
+  if (statusCode >= 500) {
+    console.error('Request failed:', err.message);
+    message =
+      statusCode === 503
+        ? 'Service unavailable. Please try again later.'
+        : 'Service request failed. Please try again later.';
   }
-
   res.status(statusCode).json({
     success: false,
     message,

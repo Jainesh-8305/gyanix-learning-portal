@@ -1,6 +1,10 @@
 // backend/src/routes/discussion.routes.js
 const express = require('express');
 const router = express.Router({ mergeParams: true });
+router.param('id', (req, res, next) =>
+  require('../utils/http').objectIds(req, res, next),
+);
+
 const {
   getDiscussions,
   createDiscussion,

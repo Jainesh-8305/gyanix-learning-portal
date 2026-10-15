@@ -74,7 +74,12 @@ export default function DetailedProgressCard({
         <div className="flex items-center gap-3.5">
           {/* Circular Progress Ring */}
           <div className="relative flex items-center justify-center shrink-0">
-            <svg width="68" height="68" viewBox="0 0 80 80" className="-rotate-90">
+            <svg
+              width="68"
+              height="68"
+              viewBox="0 0 80 80"
+              className="-rotate-90"
+            >
               <circle
                 cx="40"
                 cy="40"
@@ -113,7 +118,9 @@ export default function DetailedProgressCard({
           <div className="flex-1 space-y-1.5 min-w-0">
             <div className="flex items-center justify-between text-xs font-bold text-white">
               <span>Overall Completion</span>
-              <span className="text-[11px] text-cyan-300 font-mono">{completedUnits}/{totalUnits} Courses</span>
+              <span className="text-[11px] text-cyan-300 font-mono">
+                {completedUnits}/{totalUnits} Courses
+              </span>
             </div>
 
             {/* Glowing horizontal progress bar */}
@@ -140,9 +147,13 @@ export default function DetailedProgressCard({
                   >
                     <Icon className="w-3 h-3" />
                   </div>
-                  <span className="font-semibold text-white text-xs">{cat.label}</span>
+                  <span className="font-semibold text-white text-xs">
+                    {cat.label}
+                  </span>
                 </div>
-                <span className="font-bold text-cyan-300 text-xs">{cat.pct}%</span>
+                <span className="font-bold text-cyan-300 text-xs">
+                  {cat.pct}%
+                </span>
               </div>
 
               {/* Individual Glowing Horizontal Bar */}

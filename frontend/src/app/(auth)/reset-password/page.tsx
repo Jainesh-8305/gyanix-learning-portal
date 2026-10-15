@@ -8,14 +8,23 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Lock, Eye, EyeOff, ArrowRight, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+} from 'lucide-react';
 import api from '@/lib/api';
 import AstroMascot from '@/components/ui/AstroMascot';
 
 const schema = z
   .object({
     password: z.string().min(8, 'Password must be at least 8 characters'),
-    confirmPassword: z.string().min(8, 'Password must be at least 8 characters'),
+    confirmPassword: z
+      .string()
+      .min(8, 'Password must be at least 8 characters'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords don't match",
@@ -59,7 +68,10 @@ function ResetPasswordForm() {
         router.push('/login');
       }, 2500);
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to reset password. Link may have expired.');
+      toast.error(
+        error.response?.data?.message ||
+          'Failed to reset password. Link may have expired.',
+      );
     } finally {
       setLoading(false);
     }
@@ -87,7 +99,9 @@ function ResetPasswordForm() {
         <div className="text-center space-y-4">
           <div className="p-5 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-300 space-y-2">
             <CheckCircle2 className="w-8 h-8 mx-auto text-teal-400" />
-            <h3 className="text-base font-bold text-white">Password Changed Successfully</h3>
+            <h3 className="text-base font-bold text-white">
+              Password Changed Successfully
+            </h3>
             <p className="text-xs text-indigo-200/80">
               Redirecting you to the scholar login portal...
             </p>
@@ -101,7 +115,11 @@ function ResetPasswordForm() {
           </Link>
         </div>
       ) : (
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" suppressHydrationWarning>
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-5"
+          suppressHydrationWarning
+        >
           {/* New Password */}
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
@@ -113,6 +131,8 @@ function ResetPasswordForm() {
               </div>
               <input
                 {...register('password')}
+                id="reset-password-password"
+                aria-label="password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••••••"
                 suppressHydrationWarning
@@ -123,11 +143,17 @@ function ResetPasswordForm() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-4 text-indigo-300/50 hover:text-indigo-200 transition-colors focus:outline-none cursor-pointer"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
             {errors.password && (
-              <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">{errors.password.message}</p>
+              <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">
+                {errors.password.message}
+              </p>
             )}
           </div>
 
@@ -142,6 +168,8 @@ function ResetPasswordForm() {
               </div>
               <input
                 {...register('confirmPassword')}
+                id="reset-password-confirmPassword"
+                aria-label="Confirm password"
                 type={showPassword ? 'text' : 'password'}
                 placeholder="••••••••••••"
                 suppressHydrationWarning
@@ -149,7 +177,9 @@ function ResetPasswordForm() {
               />
             </div>
             {errors.confirmPassword && (
-              <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">{errors.confirmPassword.message}</p>
+              <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
@@ -184,7 +214,13 @@ export default function ResetPasswordPage() {
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/15 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
 
       <div className="relative z-10 w-full max-w-md mx-auto">
-        <Suspense fallback={<div className="glass-card rounded-3xl p-12 text-center text-indigo-200/50">Loading security token...</div>}>
+        <Suspense
+          fallback={
+            <div className="glass-card rounded-3xl p-12 text-center text-indigo-200/50">
+              Loading security token...
+            </div>
+          }
+        >
           <ResetPasswordForm />
         </Suspense>
       </div>

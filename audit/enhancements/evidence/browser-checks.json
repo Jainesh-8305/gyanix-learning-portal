@@ -1,0 +1,100 @@
+{
+  "timestamp": "2026-10-15T05:03:55.001Z",
+  "checks": [
+    {
+      "id": "UI-01",
+      "result": "PASS",
+      "detail": "Instructor dashboard shows all teaching features in a clear sidebar and no payment or revenue controls."
+    },
+    {
+      "id": "UI-02",
+      "result": "PASS",
+      "detail": "Floating assistant opens as a non-modal window; Gujarati question retrieves the correct batch-quiz guide and explicitly identifies retrieval-only mode."
+    },
+    {
+      "id": "UI-03",
+      "result": "PASS",
+      "detail": "Instructor course-creation form contains no price, discount or gateway fields."
+    },
+    {
+      "id": "UI-04",
+      "result": "PASS",
+      "detail": "Created a course in the UI, added a private video and duration, saved and reloaded; both persisted correctly."
+    },
+    {
+      "id": "UI-05",
+      "result": "PASS",
+      "detail": "Instructor roster loads owned course enrollments and actual completion progress."
+    },
+    {
+      "id": "UI-06",
+      "result": "PASS",
+      "detail": "Student submitted HTTP assignment; persisted receipt and awaiting-review status visible."
+    },
+    {
+      "id": "UI-07",
+      "result": "PASS",
+      "detail": "Student completed 3-question instructor quiz via UI. Backend result 3/3, 100%, persisted assessment."
+    },
+    {
+      "id": "UI-08",
+      "result": "PASS",
+      "detail": "Instructor read real submitted answer and saved manual grade 85/100 with feedback through gradebook."
+    },
+    {
+      "id": "UI-09",
+      "result": "PASS",
+      "detail": "Admin approved pending course; published list verified. User search, deactivation/reactivation of synthetic second student, and enrollment table worked without finance fields."
+    },
+    {
+      "id": "UI-10",
+      "result": "PASS",
+      "detail": "Student reopened submission after instructor review; own 85/100 score and exact feedback visible."
+    },
+    {
+      "id": "UI-11",
+      "result": "PASS",
+      "detail": "New course: instructor create/edit/submit -> admin publish -> student free enrollment -> lesson opened directly, no checkout."
+    },
+    {
+      "id": "UI-12",
+      "result": "PASS",
+      "detail": "390px student dashboard and floating Hindi assistant: scrollWidth=clientWidth=390. Correct role-filtered assignment article in Hindi. Final lazy assignment modal retains workspace shell."
+    },
+    {
+      "id": "UI-13",
+      "result": "PASS",
+      "detail": "Private notes generated from pasted HTTP text with explicit offline template label; saved note appears in private library. Unsupported video URL did not produce generated output."
+    },
+    {
+      "id": "UI-14",
+      "result": "PASS",
+      "detail": "Final production notes screen shows persistent transcript-required error and no generated output for a video URL without text."
+    },
+    {
+      "id": "UI-15",
+      "result": "PASS",
+      "detail": "Revision quiz lists both real enrolled courses and lesson scope. Selecting 3 produces exactly 3 questions, labelled offline template and practice only."
+    },
+    {
+      "id": "UI-16",
+      "result": "PASS",
+      "detail": "390px instructor workspace has no page overflow. Lazy quiz tool keeps shell visible; form fields labelled; 3-question draft count correct and offline review notice visible."
+    },
+    {
+      "id": "UI-17",
+      "result": "PASS",
+      "detail": "All three role dashboards fit 390px and 1440px without page overflow. Mobile admin overview shows real totals and all governance links."
+    },
+    {
+      "id": "UI-18",
+      "result": "PASS",
+      "detail": "Latest standalone Docker frontend renders catalog against isolated empty QA database; empty-state UI works without console errors."
+    },
+    {
+      "id": "UI-19",
+      "result": "PASS",
+      "detail": "Final build: instructor 1440px width equals scrollWidth. Quiz question edit/save/remove controls have accessible names; edited text persists in draft. Instructor login ignored an admin return URL and reached instructor workspace."
+    }
+  ]
+}

@@ -11,6 +11,7 @@ const resolveBaseUrl = () => {
 const api = axios.create({
   baseURL: resolveBaseUrl(),
   headers: { 'Content-Type': 'application/json' },
+  timeout: 30000,
 });
 
 // Attach token to every request automatically
@@ -23,7 +24,9 @@ api.interceptors.request.use((config) => {
         if (state?.token) {
           config.headers.Authorization = `Bearer ${state.token}`;
         }
-      } catch (e) {}
+      } catch {
+        /* Ignore malformed local auth state; protected routes validate the session. */
+      }
     }
   }
   return config;
@@ -38,8 +41,6 @@ api.interceptors.response.use(
       const msg = (error.response?.data?.message || '').toLowerCase();
       const pathname = window.location.pathname;
 
-      // Do NOT log out user if the error is from payment or non-auth endpoints
-      const isPaymentCall = url.includes('/payments/');
       const isAuthError =
         msg.includes('token') ||
         msg.includes('not authorized') ||
@@ -47,14 +48,18 @@ api.interceptors.response.use(
         url.includes('/users/me') ||
         url.includes('/auth/');
 
-      if (!isPaymentCall && isAuthError && !pathname.startsWith('/login') && !pathname.startsWith('/register')) {
+      if (
+        isAuthError &&
+        !pathname.startsWith('/login') &&
+        !pathname.startsWith('/register')
+      ) {
         localStorage.removeItem('auth-storage');
         const redirect = encodeURIComponent(pathname + window.location.search);
         window.location.href = `/login?redirect=${redirect}`;
       }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

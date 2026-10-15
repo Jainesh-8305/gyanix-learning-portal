@@ -2,7 +2,13 @@
 const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
-const { register, login, getMe, forgotPassword, resetPassword } = require('../controllers/auth.controller');
+const {
+  register,
+  login,
+  getMe,
+  forgotPassword,
+  resetPassword,
+} = require('../controllers/auth.controller');
 const { protect } = require('../middleware/auth');
 
 const isDev = process.env.NODE_ENV !== 'production';
@@ -10,7 +16,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 // Rate limiter for login endpoint
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: isDev ? 500 : 60,     // 60 attempts per 15 mins (500 in dev)
+  max: isDev ? 500 : 60, // 60 attempts per 15 mins (500 in dev)
   message: {
     success: false,
     message: 'Too many login attempts. Please try again in a few minutes.',
@@ -23,7 +29,8 @@ const loginLimiter = rateLimit({
 router.post('/register', register);
 router.post('/login', loginLimiter, login);
 router.get('/me', protect, getMe);
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+const resetLimiter = rateLimit({ windowMs: 15 * 60000, max: 10 });
+router.post('/forgot-password', resetLimiter, forgotPassword);
+router.post('/reset-password', resetLimiter, resetPassword);
 
 module.exports = router;

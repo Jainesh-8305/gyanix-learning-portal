@@ -11,10 +11,12 @@ const isAllowedInCourse = async (courseId, user) => {
   const course = await Course.findById(courseId).select('instructor');
   if (!course) return false;
   if (course.instructor.toString() === user._id.toString()) return true; // instructor
-  const enrolled = await Enrollment.exists({ student: user._id, course: courseId });
+  const enrolled = await Enrollment.exists({
+    student: user._id,
+    course: courseId,
+  });
   return !!enrolled;
 };
-
 
 // ─── @GET /api/courses/:courseId/discussions ─────────────────
 const getDiscussions = async (req, res, next) => {
@@ -54,7 +56,6 @@ const getDiscussions = async (req, res, next) => {
   }
 };
 
-
 // ─── @POST /api/courses/:courseId/discussions ────────────────
 const createDiscussion = async (req, res, next) => {
   try {
@@ -73,7 +74,9 @@ const createDiscussion = async (req, res, next) => {
 
     const course = await Course.findById(courseId);
     if (!course) {
-      return res.status(404).json({ success: false, message: 'Course not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: 'Course not found' });
     }
 
     const discussion = new Discussion({
@@ -120,16 +123,24 @@ const addReply = async (req, res, next) => {
     const { content } = req.body;
 
     if (!content || !content.trim()) {
-      return res.status(400).json({ success: false, message: 'Reply content cannot be empty' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Reply content cannot be empty' });
     }
 
     const discussion = await Discussion.findById(id);
     if (!discussion) {
-      return res.status(404).json({ success: false, message: 'Discussion not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: 'Discussion not found' });
     }
 
     // ── Enrollment Guard ─────────────────────────────────────────────────
-    const targetCourseId = courseId || discussion.course;
+    if (String(discussion.course) !== courseId)
+      return res
+        .status(400)
+        .json({ success: false, message: 'Discussion/course mismatch' });
+    const targetCourseId = discussion.course;
     const allowed = await isAllowedInCourse(targetCourseId, req.user);
     if (!allowed) {
       return res.status(403).json({
@@ -140,7 +151,8 @@ const addReply = async (req, res, next) => {
     }
 
     const course = await Course.findById(discussion.course);
-    const isInstructor = course && course.instructor.toString() === req.user._id.toString();
+    const isInstructor =
+      course && course.instructor.toString() === req.user._id.toString();
 
     discussion.replies.push({
       user: req.user._id,
@@ -159,18 +171,28 @@ const addReply = async (req, res, next) => {
   }
 };
 
-
 // ─── @PUT /api/courses/:courseId/discussions/:id/upvote ──────
 const toggleUpvote = async (req, res, next) => {
   try {
     const { id } = req.params;
     const discussion = await Discussion.findById(id);
     if (!discussion) {
-      return res.status(404).json({ success: false, message: 'Discussion not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: 'Discussion not found' });
     }
 
+    if (
+      String(discussion.course) !== req.params.courseId ||
+      !(await isAllowedInCourse(discussion.course, req.user))
+    )
+      return res
+        .status(403)
+        .json({ success: false, message: 'Course membership required' });
     const userIdStr = req.user._id.toString();
-    const existsIndex = discussion.upvotes.findIndex(u => u.toString() === userIdStr);
+    const existsIndex = discussion.upvotes.findIndex(
+      (u) => u.toString() === userIdStr,
+    );
 
     if (existsIndex > -1) {
       discussion.upvotes.splice(existsIndex, 1);
@@ -191,9 +213,24 @@ const toggleResolve = async (req, res, next) => {
     const { id } = req.params;
     const discussion = await Discussion.findById(id);
     if (!discussion) {
-      return res.status(404).json({ success: false, message: 'Discussion not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: 'Discussion not found' });
     }
 
+    const course = await Course.findById(discussion.course);
+    if (
+      String(discussion.course) !== req.params.courseId ||
+      !(await isAllowedInCourse(discussion.course, req.user)) ||
+      (req.user.role !== 'admin' &&
+        String(discussion.user) !== String(req.user._id) &&
+        String(course?.instructor) !== String(req.user._id))
+    )
+      return res.status(403).json({
+        success: false,
+        message:
+          'Only the author or course moderator may resolve this discussion',
+      });
     discussion.isResolved = !discussion.isResolved;
     await discussion.save();
 

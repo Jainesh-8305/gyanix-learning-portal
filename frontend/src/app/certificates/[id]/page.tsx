@@ -1,5 +1,3 @@
-/* eslint-disable @next/next/no-img-element */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useParams } from 'next/navigation';
@@ -13,8 +11,6 @@ import {
   Award,
   ArrowLeft,
   Printer,
-  Sparkles,
-  ExternalLink,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
@@ -25,9 +21,9 @@ export default function CertificatePage() {
   const { id } = useParams();
   const certId = typeof id === 'string' ? id : Array.isArray(id) ? id[0] : '';
 
-  const { data, isLoading, error } = useSWR(
+  const { data } = useSWR(
     certId ? `/users/certificates/${certId}` : null,
-    fetcher
+    fetcher,
   );
 
   const cert = data?.data;
@@ -50,9 +46,12 @@ export default function CertificatePage() {
     }
   };
 
-  const studentName = cert?.studentName || cert?.student?.name || 'Distinguished Scholar';
-  const courseTitle = cert?.courseTitle || cert?.course?.title || 'Advanced Master Curriculum';
-  const instructorName = cert?.instructorName || cert?.course?.instructor?.name || 'James Brookes';
+  const studentName =
+    cert?.studentName || cert?.student?.name || 'Distinguished Scholar';
+  const courseTitle =
+    cert?.courseTitle || cert?.course?.title || 'Advanced Master Curriculum';
+  const instructorName =
+    cert?.instructorName || cert?.course?.instructor?.name || 'James Brookes';
   const certificateCode = cert?.certificateId || cert?._id || certId;
 
   // Format formal date e.g. "22nd of August, 2026"
@@ -63,10 +62,10 @@ export default function CertificatePage() {
       day % 10 === 1 && day !== 11
         ? 'st'
         : day % 10 === 2 && day !== 12
-        ? 'nd'
-        : day % 10 === 3 && day !== 13
-        ? 'rd'
-        : 'th';
+          ? 'nd'
+          : day % 10 === 3 && day !== 13
+            ? 'rd'
+            : 'th';
     const month = d.toLocaleString('en-US', { month: 'long' });
     const year = d.getFullYear();
     return `${day}${suffix} of ${month}, ${year}`;
@@ -74,13 +73,13 @@ export default function CertificatePage() {
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const linkedInShareUrl = `https://www.linkedin.com/profile/add?startTask=CERTIFICATION_NAME&name=${encodeURIComponent(
-    courseTitle
+    courseTitle,
   )}&organizationName=Gyanix%20Academy&issueYear=${new Date(
-    cert?.completedAt || Date.now()
+    cert?.completedAt || Date.now(),
   ).getFullYear()}&issueMonth=${
     new Date(cert?.completedAt || Date.now()).getMonth() + 1
   }&certId=${encodeURIComponent(certificateCode)}&certUrl=${encodeURIComponent(
-    shareUrl
+    shareUrl,
   )}`;
 
   return (
@@ -310,7 +309,8 @@ export default function CertificatePage() {
                   <h2
                     className="text-4xl sm:text-6xl text-[#b45309] tracking-normal font-serif capitalize"
                     style={{
-                      fontFamily: '"Playfair Display", "Great Vibes", "Georgia", cursive, serif',
+                      fontFamily:
+                        '"Playfair Display", "Great Vibes", "Georgia", cursive, serif',
                       fontStyle: 'italic',
                       color: '#b45309',
                       textShadow: '0 1px 2px rgba(180,83,9,0.15)',
@@ -327,11 +327,13 @@ export default function CertificatePage() {
                   className="text-xs sm:text-sm text-[#334155] max-w-2xl mx-auto leading-relaxed pt-2"
                   style={{ fontFamily: 'Georgia, serif' }}
                 >
-                  in recognition of your outstanding performance, dedication, and verified mastery in the{' '}
+                  in recognition of your outstanding performance, dedication,
+                  and verified mastery in the{' '}
                   <span className="font-bold text-[#0f172a] underline decoration-[#c6a664]/60">
                     {courseTitle}
                   </span>
-                  . Your exceptional contributions and commitment to excellence have significantly advanced our team&apos;s success.
+                  . Your exceptional contributions and commitment to excellence
+                  have significantly advanced our team&apos;s success.
                 </p>
               </div>
 
@@ -360,7 +362,12 @@ export default function CertificatePage() {
                       viewBox="0 0 100 100"
                     >
                       <defs>
-                        <radialGradient id="sunburstFoil" cx="50%" cy="50%" r="50%">
+                        <radialGradient
+                          id="sunburstFoil"
+                          cx="50%"
+                          cy="50%"
+                          r="50%"
+                        >
                           <stop offset="0%" stopColor="#fef08a" />
                           <stop offset="45%" stopColor="#f59e0b" />
                           <stop offset="85%" stopColor="#d97706" />
@@ -377,8 +384,23 @@ export default function CertificatePage() {
                       />
 
                       {/* Inner Gold Embossed Rim */}
-                      <circle cx="50" cy="50" r="28" fill="none" stroke="#fef08a" strokeWidth="1.5" strokeDasharray="3 2" />
-                      <circle cx="50" cy="50" r="24" fill="#d97706" stroke="#92400e" strokeWidth="1" />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="28"
+                        fill="none"
+                        stroke="#fef08a"
+                        strokeWidth="1.5"
+                        strokeDasharray="3 2"
+                      />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="24"
+                        fill="#d97706"
+                        stroke="#92400e"
+                        strokeWidth="1"
+                      />
                     </svg>
 
                     {/* Seal Emblem Typography */}
@@ -402,7 +424,8 @@ export default function CertificatePage() {
                   <p
                     className="text-xl sm:text-2xl text-[#1e293b] leading-tight font-serif"
                     style={{
-                      fontFamily: '"Playfair Display", "Great Vibes", cursive, serif',
+                      fontFamily:
+                        '"Playfair Display", "Great Vibes", cursive, serif',
                       fontStyle: 'italic',
                     }}
                   >

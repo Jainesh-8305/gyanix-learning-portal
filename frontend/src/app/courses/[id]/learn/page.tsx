@@ -1,25 +1,34 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable react-hooks/set-state-in-effect */
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { CheckCircle, PlayCircle, Lock, ChevronLeft, Menu, X, Sparkles, MessageSquare } from 'lucide-react';
+import {
+  CheckCircle,
+  PlayCircle,
+  Lock,
+  ChevronLeft,
+  Menu,
+  X,
+  Sparkles,
+  MessageSquare,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
 import VideoPlayer from '@/components/courses/VideoPlayer';
 
-const fetcher = (url: string) => api.get(url).then(r => r.data);
+const fetcher = (url: string) => api.get(url).then((r) => r.data);
 
 export default function LearnPage() {
   const params = useParams();
   const router = useRouter();
   const { isAuthenticated } = useAuthStore();
   const [activeLesson, setActiveLesson] = useState<any>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -29,7 +38,9 @@ export default function LearnPage() {
           const parsed = JSON.parse(stored);
           if (parsed?.state?.token) return;
         }
-      } catch (e) {}
+      } catch (e) {
+        /* Invalid cached browser state is ignored; server authentication remains authoritative. */
+      }
     }
     if (!isAuthenticated) router.push('/login');
   }, [isAuthenticated, router]);
@@ -39,7 +50,7 @@ export default function LearnPage() {
 
   const course = courseData?.data;
   const enrollment = enrollmentData?.data?.find(
-    (e: any) => e.course._id === params.id || e.course === params.id
+    (e: any) => e.course?._id === params.id || e.course === params.id,
   );
 
   // Auto-select first lesson
@@ -55,33 +66,61 @@ export default function LearnPage() {
 
   const handleLessonComplete = async (lessonId: string, watchTime: number) => {
     try {
-      await api.put(`/enrollments/${params.id}/progress`, { lessonId, watchTimeSeconds: watchTime });
+      await api.put(`/enrollments/${params.id}/progress`, {
+        lessonId,
+        watchTimeSeconds: watchTime,
+      });
       await mutate();
       toast.success('Lesson completed! ✓');
-    } catch {}
+    } catch {
+      /* Optional browser storage may be unavailable. */
+    }
   };
 
   if (!course) {
     return (
       <div className="min-h-screen bg-[#05060f] flex items-center justify-center">
-        <div className="animate-pulse text-indigo-300/50">Loading your course...</div>
+        <div className="animate-pulse text-indigo-300/50">
+          Loading your course...
+        </div>
       </div>
     );
   }
 
-  const totalLessons = course.sections?.reduce((acc: number, s: any) => acc + s.lessons.length, 0) || 0;
+  const totalLessons =
+    course.sections?.reduce(
+      (acc: number, s: any) => acc + s.lessons.length,
+      0,
+    ) || 0;
   const progressPercent = enrollment?.progressPercentage || 0;
 
   return (
     <div className="min-h-screen bg-[#05060f] flex">
       {/* Sidebar */}
-      <aside className={`${sidebarOpen ? 'w-80' : 'w-0'} shrink-0 transition-all duration-300 overflow-hidden bg-[#0a0c1a] border-r border-indigo-500/15 flex flex-col`}>
+      <aside
+        aria-hidden={!sidebarOpen}
+        inert={!sidebarOpen}
+        className={`${sidebarOpen ? 'w-80 fixed z-30 left-0 top-16 bottom-0' : 'w-0'} shrink-0 transition-all duration-300 overflow-hidden bg-[#0a0c1a] border-r border-indigo-500/15 flex flex-col`}
+      >
         <div className="p-4 border-b border-indigo-500/15">
-          <Link href={`/courses/${params.id}`} className="flex items-center gap-2 text-indigo-300/60 hover:text-teal-400 text-sm transition mb-3">
+          <button
+            type="button"
+            aria-label="Close lesson navigation"
+            onClick={() => setSidebarOpen(false)}
+            className="float-right p-2 text-indigo-200 hover:text-white"
+          >
+            <X size={18} />
+          </button>
+          <Link
+            href={`/courses/${params.id}`}
+            className="flex items-center gap-2 text-indigo-300/60 hover:text-teal-400 text-sm transition mb-3"
+          >
             <ChevronLeft size={16} />
             Back to course
           </Link>
-          <h2 className="font-medium text-white text-sm line-clamp-2">{course.title}</h2>
+          <h2 className="font-medium text-white text-sm line-clamp-2">
+            {course.title}
+          </h2>
           <div className="mt-3">
             <div className="flex justify-between text-xs text-indigo-200/40 mb-1.5">
               <span>Your progress</span>
@@ -110,27 +149,39 @@ export default function LearnPage() {
                 return (
                   <button
                     key={lesson._id || lIndex}
-                    onClick={() => setActiveLesson(lesson)}
+                    onClick={() => {
+                      setActiveLesson(lesson);
+                      setSidebarOpen(false);
+                    }}
                     className={`w-full text-left px-4 py-3.5 flex items-start gap-3 border-b border-indigo-500/5 transition-all ${
-                      isActive ? 'bg-indigo-500/10 border-l-2 border-l-indigo-400' : 'hover:bg-white/3'
+                      isActive
+                        ? 'bg-indigo-500/10 border-l-2 border-l-indigo-400'
+                        : 'hover:bg-white/3'
                     }`}
                   >
                     <div className="shrink-0 mt-0.5">
                       {completed ? (
                         <CheckCircle size={16} className="text-teal-400" />
                       ) : (
-                        <PlayCircle size={16} className={isActive ? 'text-indigo-400' : 'text-indigo-300/30'} />
+                        <PlayCircle
+                          size={16}
+                          className={
+                            isActive ? 'text-indigo-400' : 'text-indigo-300/30'
+                          }
+                        />
                       )}
                     </div>
-                    <span className={`text-sm leading-snug ${isActive ? 'text-white' : completed ? 'text-indigo-200/60' : 'text-indigo-200/50'}`}>
+                    <span
+                      className={`text-sm leading-snug ${isActive ? 'text-white' : completed ? 'text-indigo-200/60' : 'text-indigo-200/50'}`}
+                    >
                       {lesson.title}
                     </span>
                   </button>
                 );
-                })}
-              </div>
-            ))}
-          </div>
+              })}
+            </div>
+          ))}
+        </div>
 
         {/* AI Quiz Section in Sidebar */}
         <div className="p-4 border-t border-indigo-500/15 bg-[#070914] space-y-2.5">
@@ -185,11 +236,17 @@ export default function LearnPage() {
       </aside>
 
       {/* Main content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="min-w-0 flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
         <div className="h-12 bg-[#0a0c1a]/80 backdrop-blur-xl border-b border-indigo-500/15 flex items-center justify-between px-4 gap-3">
           <div className="flex items-center gap-3 truncate">
             <button
+              aria-label={
+                sidebarOpen
+                  ? 'Close lesson navigation'
+                  : 'Open lesson navigation'
+              }
+              aria-expanded={sidebarOpen}
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="text-indigo-300/50 hover:text-white transition"
             >
@@ -220,18 +277,27 @@ export default function LearnPage() {
                 title={activeLesson.title}
               />
               <div className="mt-6">
-                <h2 className="text-xl font-semibold text-white mb-2">{activeLesson.title}</h2>
+                <h2 className="text-xl font-semibold text-white mb-2">
+                  {activeLesson.title}
+                </h2>
                 {activeLesson.description && (
-                  <p className="text-indigo-200/60 text-sm">{activeLesson.description}</p>
+                  <p className="text-indigo-200/60 text-sm">
+                    {activeLesson.description}
+                  </p>
                 )}
               </div>
             </div>
           ) : (
             <div className="max-w-4xl mx-auto flex items-center justify-center h-64 bg-[#0f1120]/60 rounded-2xl border border-indigo-500/15">
               <div className="text-center">
-                <PlayCircle size={32} className="text-indigo-400/30 mx-auto mb-3" />
+                <PlayCircle
+                  size={32}
+                  className="text-indigo-400/30 mx-auto mb-3"
+                />
                 <p className="text-indigo-200/40 text-sm">
-                  {activeLesson ? 'No video URL for this lesson yet' : 'Select a lesson from the sidebar'}
+                  {activeLesson
+                    ? 'No video URL for this lesson yet'
+                    : 'Select a lesson from the sidebar'}
                 </p>
               </div>
             </div>

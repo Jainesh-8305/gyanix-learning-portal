@@ -1,207 +1,126 @@
-# 🚀 Gyanix Learning Portal — Advanced Intelligent Learning Ecosystem
+# Gyanix Learning Portal
 
-<div align="center">
+A college learning portal built with Next.js, React, Express and MongoDB. Students, instructors and administrators have separate workspaces with server-enforced permissions. **All published courses are free.** There is no checkout, payment gateway, pricing configuration or revenue reporting.
 
-![Gyanix Learning Portal Banner](https://img.shields.io/badge/Gyanix_Academy-Next--Gen_AI_LMS-00F5D4?style=for-the-badge&logo=rocket&logoColor=black)
+## Workspaces and features
 
-**A premier full-stack AI-powered Learning & Certification Platform built with Next.js 16, React 19, Node.js, Express, MongoDB, and Frontier AI Models (Claude 3.7 Sonnet, GPT-4o, and Gemini 2.0).**
+- **Students:** enroll or join a classroom, watch lessons, save progress, submit assignments, view their own grades, take timed assessments, download course-completion certificates, save notes and practise SuperMemo-2 flashcards.
+- **Instructors:** create curricula, submit courses for review, manage owned classrooms and resource hubs, create batch/reviewed quizzes, draft assignments, inspect their own student roster, review submissions and manually grade work.
+- **Administrators:** review and publish courses, request changes, manage visibility/archival, search user accounts, activate/deactivate non-admin accounts and inspect enrollment records.
+- **Assistant:** a small floating chat icon on signed-in pages opens a private conversation. It uses role-filtered help documentation, authorized account summaries and saved conversation history. It never decides permissions or executes admin actions. Hindi, Gujarati, English and other languages are handled by the configured LLM.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.2_(Turbopack)-black?style=flat-square&logo=next.js)](https://nextjs.org)
-[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black)](https://react.dev)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=flat-square&logo=typescript)](https://www.typescriptlang.org)
-[![Node.js](https://img.shields.io/badge/Node.js-20+-339933?style=flat-square&logo=node.js)](https://nodejs.org)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose_8-47A248?style=flat-square&logo=mongodb)](https://www.mongodb.com)
-[![TailwindCSS](https://img.shields.io/badge/TailwindCSS-v4-38B2AC?style=flat-square&logo=tailwindcss)](https://tailwindcss.com)
-[![OpenAI](https://img.shields.io/badge/AI_Engine-GPT--4o_•_Claude_•_Gemini-412991?style=flat-square&logo=openai)](https://openai.com)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+Notes, flashcards, feedback and conversations are account-owned. A completed lecture record alone does not create a certificate: an enrolled student must complete the published curriculum and pass a server-scored assessment. Certificates are issued by this college project; they are not external accreditation.
 
-[Explore Features](#-core-platform-capabilities) • [Architecture](#-architectural-overview) • [Quick Start](#-quick-start-guide) • [API Documentation](#-api-endpoints)
+## Local setup
 
-</div>
+Use **Node.js 22.22+**, npm and MongoDB 7. Install from the lockfiles:
 
----
-
-## 🌟 Executive Overview
-
-**Gyanix Academy** is an enterprise-grade educational ecosystem engineered for modern software engineers, university scholars, and lifelong learners. It unifies full-stack video lectures, self-learning personalized AI tutoring, on-demand curriculum assessments, automated spaced repetition flashcards (SuperMemo-2), and verifiable ivory-gold vector certification diplomas into a single cohesive, high-performance web experience.
-
----
-
-## ✨ Core Platform Capabilities
-
-### 🧠 1. Personalized Conversational AI Copilot (`Gyanix AI Assistant`)
-* **Multi-Agent Hybrid Intelligence**: Synthesizes the deep pedagogical reasoning of **Claude 3.7 Sonnet**, technical precision of **GPT-4o**, and intuitive real-world mental models of **Google Gemini**.
-* **1-on-1 Personalized Dialogue**: Recognizes student intent, greets scholars warmly by their name, and avoids unprompted rigid lectures during casual dialogue.
-* **Continuous Self-Learning Memory Engine (`AiInteractionMemory`)**: Students and faculty can teach the AI new ideas, syllabus corrections, or exam notes. Every interaction is assimilated into the model's memory database to continuously refine future answers.
-* **Multi-Turn Contextual History**: Follow-up queries (*"Explain simpler"*, *"Provide a code snippet"*) maintain conversational context from prior turns.
-
----
-
-### 📝 2. AI One-Shot Notes Synthesizer (`/dashboard/student/notes`)
-* **Multi-PDF Document Processing**: Upload multi-page lecture notes or university slides simultaneously with clean binary stream filtering (`pdf-parse` v2 integration).
-* **Video Lecture Context Ingestion**: Paste YouTube or lecture URLs to synthesize core timestamps and lecture summaries.
-* **Multi-Style Learning Output**:
-  * 💡 *ELI5 & Easy Language Breakdown*
-  * ⚡ *High-Yield One-Shot Chapter Revision Summary*
-  * 📋 *Formulas & Key Terminology Cheatsheet*
-  * 🏛️ *In-Depth Architectural & Technical Deep Dive*
-* **A4 Print-Ready PDF Export**: Generates professionally styled, printable PDF documents complete with university headers, callout boxes, and typography.
-
----
-
-### 🎯 3. On-Demand AI Revision Quiz Arena (`/dashboard/student/revision-quiz`)
-* **Dual-Source Generation**:
-  * 🏫 **Enrolled Classroom Courses**: Practice directly from your enrolled curriculum with chapter/module-level scoping.
-  * 🌐 **Any External Topic**: Enter any custom technical subject or tap trending chips (Generative AI, Next.js, DSA, SQL Indexing, Cloud DevOps).
-* **Zero-Glitch Custom Selectors**: Replaced buggy native browser dropdowns with responsive, glassmorphic pill buttons for Difficulty (*Beginner, Intermediate, Advanced*) and Question Count (*3, 5, 10*).
-* **Live Quiz Arena**: Includes a real-time stopwatch, instant explanation study toggle, and interactive question palette navigation (`[1] [2] [3] [4] [5]`).
-* **Comprehensive Diagnostic Evaluation Report**:
-  * Overall Mastery Scorecard with performance badges and time metrics.
-  * Cognitive Gap Analysis detecting specific conceptual traps.
-  * Complete question-by-question review displaying student answers, verified correct choices, and dedicated pedagogical explanations.
-
----
-
-### ⚡ 4. SuperMemo-2 (SM-2) Cosmic Spaced Repetition Flashcards (`/dashboard/student/flashcards`)
-* **Scientifically Proven Active Recall**: Implements the SuperMemo-2 (SM-2) algorithm calculating repetition intervals, ease factors ($EF$), and optimal review scheduling.
-* **Interactive Flashcard Studio**: 3D card-flip physics with keyboard navigation (`Space` to flip, `1-4` for confidence grading).
-
----
-
-### 🎓 5. Course Curriculums & Video Player
-* **High-Definition Video Lecture Suites**: Progress synchronization, lesson completion tracking, and module hierarchy.
-* **Faculty Course Creator**: Drag-and-drop section builder, video upload integrations, and review submission workflows.
-* **Verifiable Classic Ivory & Gold Diplomas**: High-resolution vector PDF certificate generation with 24-point radiant sunburst rosette seals and 1-click LinkedIn credential integration.
-
----
-
-### 🌌 6. 60 FPS Deep Space Motion Cosmos Engine
-* **Living Cosmic Physics**: 220 multi-depth twinkling stars with interactive mouse parallax physics.
-* **Illustrated Celestial Assets**: Roaming astronaut scholars reading glowing books, retro rocket cruisers, ringed planets, and meteor trails rendered smoothly in HTML5 Canvas.
-
----
-
-## 🏗️ Architectural Overview
-
-```mermaid
-graph TD
-    Client["Client Browser (Next.js 16 App Router)"]
-    API["Express.js REST Gateway (/api)"]
-    Auth["JWT Authentication & RBAC Middleware"]
-    DB[(MongoDB + Mongoose 8)]
-    AI["Gyanix AI Frontier Engine"]
-    Memory[(AiInteractionMemory DB)]
-
-    Client -->|HTTP / JSON| API
-    API --> Auth
-    Auth --> DB
-    API --> AI
-    AI -->|Assimilation & Retrieval| Memory
-    AI -->|External Synthesis| LLMs["OpenAI GPT-4o / Claude / Gemini"]
+```sh
+npm ci --prefix backend
+npm ci --prefix frontend
+cp backend/.env.example backend/.env
 ```
 
----
+Set the following in the private, ignored `backend/.env`:
 
-## 🛠 Tech Stack
-
-| Layer | Technologies |
-|---|---|
-| **Frontend** | Next.js 16 (App Router), React 19, TypeScript, TailwindCSS v4 |
-| **Icons & UI** | Lucide React, Custom Glassmorphic System, React Hot Toast |
-| **State & Cache** | Zustand (Auth & Session), SWR (Client Data Fetching) |
-| **Backend API** | Node.js, Express.js (Modular Route Architecture) |
-| **Database** | MongoDB, Mongoose 8 ODM |
-| **Authentication** | Stateless JWT (Bearer / Cookies), Bcrypt password hashing |
-| **AI Integration** | OpenAI GPT-4o / GPT-4o-mini API with local self-learning fallback |
-| **Document Processing** | `pdf-parse` v2, PDFKit (Vector Certificate Generation) |
-
----
-
-## 🚀 Quick Start Guide
-
-### Prerequisites
-- **Node.js**: v18.17+ or v20+
-- **MongoDB**: Local instance running on `mongodb://localhost:27017` or MongoDB Atlas URI
-- **Git**
-
----
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/Jainesh-8305/gyanix-learning-portal.git
-cd gyanix-learning-portal
-```
-
----
-
-### 2. Backend Setup
-```bash
-cd backend
-npm install
-```
-
-Create `backend/.env`:
-```env
-PORT=5000
+```dotenv
 NODE_ENV=development
-MONGO_URI=mongodb://localhost:27017/ai-lms
-JWT_SECRET=your_super_secret_jwt_key
-OPENAI_API_KEY=your_openai_api_key_optional
+HOST=127.0.0.1
+PORT=5000
+MONGODB_URI=mongodb://127.0.0.1:27017/gyanix
+JWT_SECRET=replace-with-a-random-value-of-at-least-32-characters
 FRONTEND_URL=http://localhost:3000
+API_PUBLIC_URL=http://localhost:5000
 ```
 
-Start the backend:
-```bash
-npm run dev
-# Express API listening on http://localhost:5000
-```
+Generate a signing secret with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Start MongoDB, then run `npm run dev --prefix backend`.
 
----
+Create the ignored `frontend/.env.local`:
 
-### 3. Frontend Setup
-```bash
-cd ../frontend
-npm install
-```
-
-Create `frontend/.env.local`:
-```env
+```dotenv
 NEXT_PUBLIC_API_URL=http://localhost:5000/api
 ```
 
-Start the frontend development server:
-```bash
-npm run dev
-# Next.js running on http://localhost:3000
+Run `npm run dev --prefix frontend`. For a production run, use `npm run build --prefix frontend` and `npm start --prefix frontend`. Public frontend values are fixed at build time. Never put an LLM key in a `NEXT_PUBLIC_` variable.
+
+The API refuses startup without a database connection and a sufficiently long signing secret. `/health` reports readiness. Normal startup does not create accounts or seed courses.
+
+### Local accounts and sample curricula
+
+`npm run seed --prefix backend` is restricted to an explicit loopback MongoDB URI. It creates missing local admin/instructor/student accounts with random passwords and writes new credentials to `.audit-runtime/local-accounts-*.json` (directory mode 700, files mode 600). Existing account passwords are preserved. Sample curricula remain drafts without educational video URLs: add appropriate lectures/durations, review the content and submit for admin approval.
+
+### Existing databases and free access
+
+Back up an existing database before migration. `npm run migrate:free --prefix backend` works only with an explicit loopback URI and removes obsolete pricing/payment fields from course/enrollment records. Learning records are retained. Historical gateway-order collections, if present, are not read or exposed by this application and are left untouched for archival purposes. Old payment API routes return 404. New pricing fields are rejected; any published legacy course can be enrolled in for free.
+
+## Assistant and retrieval setup
+
+Configure these **server-only** variables in `backend/.env`, then restart the API:
+
+```dotenv
+OPENAI_API_KEY=
+CHAT_MODEL=gpt-5.4-mini
+CHAT_EMBEDDING_MODEL=text-embedding-3-small
+CHAT_SEMANTIC_SEARCH=true
 ```
 
----
+Supply a valid key privately through your environment or a secret manager; leave the example file empty. The key is never returned to the frontend, written in reports or included in Docker images. The current implementation uses the OpenAI Responses API and embedding API. Models are configurable; the account must have access to the configured models.
 
-### 4. Build for Production
-To validate the production bundle across all static and dynamic routes:
-```bash
-cd frontend
-npm run build
+Retrieval uses the reviewed chunks in `backend/src/knowledge/portal.json` (also displayed in the role-filtered Help centre). BM25 retrieval includes Hindi/Gujarati keyword expansion. When a provider is configured, semantic similarity and keyword ranks are combined. Only role-allowed documentation is embedded/cached. Private notes and account/course summaries are fetched with authenticated ownership predicates for each request, are never shared in an index/cache and are bounded before generation. Answer keys, passwords, email lists and raw submission bodies are excluded from assistant context. Student assignment context contains only that student's permitted grade/feedback.
+
+The backend owns conversation history and verifies account, current role, expiry and generation locks. Client-supplied roles, account IDs, document IDs, arbitrary URLs and histories are not accepted by the chat endpoint. Conversations retain up to 40 messages and expire after 30 days. Retrieval text is treated as untrusted data in model instructions; the assistant has no tools that can change accounts or fetch arbitrary URLs. Citations must match the server-selected sources. See [CHATBOT_SECURITY.md](CHATBOT_SECURITY.md) for boundaries and tests.
+
+With a working provider, the model receives selected authorized evidence and recent private conversation turns. `store: false` disables application response storage through the provider's Responses API; provider retention policies remain separate. Without a key or during an outage, the UI explicitly shows **retrieved help**, not a fabricated AI answer. Hindi/Gujarati/English articles remain available locally; unrestricted natural-language intelligence and other-language quality require the live model. Do not treat an unavailable provider as a successful live test.
+
+Other study-tool generation/grading uses OpenAI when configured. Offline drafts are labelled and require review. Grading failures remain pending for manual instructor review. Text-based PDFs are supported; scanned PDFs require OCR and video study guides require a transcript.
+
+### Optional services
+
+SMTP delivers password-reset and course-review emails. Configure `EMAIL_HOST`, `EMAIL_PORT`, `EMAIL_USER`, `EMAIL_PASS`, `EMAIL_FROM`; verify actual inbox delivery separately. Reset responses stay generic and never expose tokens. Cloudinary is optional for image uploads. Certificates have a direct PDF endpoint. There is no payment service to configure.
+
+## Performance choices
+
+Dashboard navigation uses standard Next links and cached per-account SWR data. The student overview loads one bounded dashboard response. Instructor rosters, gradebooks, quizzes and large modals load only when requested. Chat code loads on first open and makes no background provider calls while unused. Global canvas/cursor animation loops and heavy glass backdrop filtering have been removed; reduced-motion preferences are respected. Indexed ownership queries, bounded retrieval context, strict timeouts, no automatic provider retries and request quotas control work. Cache identity resets on account changes; backend API responses are `no-store`.
+
+## Validation
+
+Start a separate MongoDB on `127.0.0.1:27028`, then:
+
+```sh
+npm run lint --prefix backend -- --max-warnings 0
+npm test --prefix backend
+npm run lint --prefix frontend -- --max-warnings 0
+npm run build --prefix frontend
+npm run typecheck --prefix frontend
+npm audit --prefix backend
+npm audit --prefix frontend
 ```
 
----
+The test suite creates unique disposable databases and cleans only those databases. It disables live keys, captures reset mail and tests owned data, moderation, free enrollment, progress/assessments, certificates, assignments, privacy, persistence, multilingual retrieval, conversation ownership, spoofed roles, expiry, provider failure and quotas. Provider-contract tests use a controlled mock; actual model quality must also be tested with a configured key. CI starts test MongoDB automatically. A workflow added locally is not a completed GitHub run.
 
-## 📡 Core API Endpoints
+## Docker
 
-| Method | Endpoint | Description |
-|---|---|---|
-| `POST` | `/api/auth/login` | Authenticate user & return JWT token |
-| `POST` | `/api/auth/register` | Register new student or instructor |
-| `GET` | `/api/courses` | Fetch published classroom courses catalog |
-| `GET` | `/api/users/enrolled-courses` | Retrieve student's enrolled courses and progress |
-| `POST` | `/api/ai/assistant-chat` | Multi-turn conversational AI assistant dialogue |
-| `POST` | `/api/ai/learn-feedback` | Assimilate student concept teaching and corrections into memory |
-| `GET` | `/api/ai/learned-insights` | Telemetry on active self-learning concept count |
-| `POST` | `/api/ai/generate-quiz` | Generate on-demand diagnostic revision quizzes |
-| `POST` | `/api/ai/summarize-notes` | Multi-PDF extraction & chapter study guide synthesis |
+Supply a strong `JWT_SECRET` through the environment, set the intended frontend/API URLs and optional LLM/SMTP configuration, then:
 
----
+```sh
+docker compose build
+docker compose up -d
+```
 
-## 📄 License
+Frontend public variables are supplied at build time. Production images run as non-root users and use Next standalone output with no source bind mounts. Default app/API ports bind only to loopback (3000/5000). MongoDB is internal to Compose. Configure public HTTPS ingress separately when intentionally deploying.
 
-This project is licensed under the [MIT License](LICENSE) © 2026 Jainesh Dalwadi.
+## Audit documents
+
+The original audit under `audit/` and the earlier fix report under `audit/fixes/` are historical snapshots. The latest enhancement report records the additional dashboard, free-access, performance and assistant work, including credential-dependent limitations. No local change is automatically pushed or deployed.
+
+## Project presentation and QA snapshot
+
+- [Teacher presentation with speaker notes](presentation/output/Gyanix_Project_Presentation.pptx)
+- [Final audit and QA report (PDF)](audit/enhancements/output/pdf/Gyanix_Final_Audit_and_QA_Report.pdf)
+- [Readable audit report](audit/enhancements/Gyanix_Final_Audit_and_QA_Report.md)
+- [Finding-by-finding resolution matrix](audit/enhancements/resolution-matrix.json)
+- [QA results snapshot](audit/enhancements/evidence/qa-summary.json)
+
+The reports record local verification on 15 October 2026, before the source was committed and pushed. Their statements about uncommitted changes describe that snapshot. Live LLM quality, SMTP inbox delivery and Cloudinary upload delivery remain pending credential-backed verification. Private runtime data, credentials, database backups and build artifacts are excluded from Git.
+
+MIT license: see `LICENSE`.

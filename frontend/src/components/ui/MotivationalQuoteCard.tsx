@@ -25,7 +25,7 @@ export default function MotivationalQuoteCard({
   className = '',
 }: MotivationalQuoteCardProps) {
   const [liked, setLiked] = useState(false);
-  const [cheerCount, setCheerCount] = useState(42);
+  const [cheerCount, setCheerCount] = useState(0);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [isRotating, setIsRotating] = useState(false);
@@ -37,12 +37,14 @@ export default function MotivationalQuoteCard({
         const savedCount = localStorage.getItem('gyanix_catalyst_cheer_count');
         if (savedLiked === 'true') setLiked(true);
         if (savedCount) setCheerCount(parseInt(savedCount, 10));
-      } catch {}
+      } catch {
+        /* Optional browser storage may be unavailable. */
+      }
     }
   }, []);
 
   const handleCheer = () => {
-    let newLiked = !liked;
+    const newLiked = !liked;
     let newCount = cheerCount;
     if (newLiked) {
       newCount = cheerCount + 1;
@@ -57,7 +59,9 @@ export default function MotivationalQuoteCard({
       try {
         localStorage.setItem('gyanix_catalyst_liked', String(newLiked));
         localStorage.setItem('gyanix_catalyst_cheer_count', String(newCount));
-      } catch {}
+      } catch {
+        /* Optional browser storage may be unavailable. */
+      }
     }
 
     setTimeout(() => setShowToast(false), 2200);
@@ -97,14 +101,18 @@ export default function MotivationalQuoteCard({
           title="Inspire me with another cosmic quote"
           className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/5 hover:bg-white/15 border border-white/15 text-indigo-200 hover:text-white text-[10px] font-bold transition cursor-pointer"
         >
-          <RefreshCw className={`w-2.5 h-2.5 text-cyan-300 ${isRotating ? 'animate-spin' : ''}`} />
+          <RefreshCw
+            className={`w-2.5 h-2.5 text-cyan-300 ${isRotating ? 'animate-spin' : ''}`}
+          />
           <span className="hidden sm:inline">Inspire Me</span>
         </button>
       </div>
 
       {/* ── Center Quote & Heart ── */}
       <div className="relative z-10 my-auto py-2 text-center space-y-2.5">
-        <h3 className={`font-cursive text-xl sm:text-2xl text-white font-bold leading-snug tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] max-w-[260px] mx-auto select-none transition-all duration-300 ${isRotating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+        <h3
+          className={`font-cursive text-xl sm:text-2xl text-white font-bold leading-snug tracking-wide drop-shadow-[0_2px_12px_rgba(0,0,0,0.9)] max-w-[260px] mx-auto select-none transition-all duration-300 ${isRotating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}
+        >
           {CATALYST_QUOTES[quoteIndex]}
         </h3>
 
@@ -123,7 +131,7 @@ export default function MotivationalQuoteCard({
             />
           </button>
           <span className="text-[10px] font-medium text-pink-200/70">
-            {cheerCount} Scholars Inspired
+            {cheerCount} Local motivation clicks
           </span>
 
           {showToast && (

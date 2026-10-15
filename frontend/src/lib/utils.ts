@@ -7,11 +7,6 @@ export const formatDuration = (seconds: number): string => {
   return `${s}s`;
 };
 
-export const formatPrice = (price: number): string => {
-  if (price === 0) return 'Free';
-  return `₹${price.toLocaleString('en-IN')}`;
-};
-
 export const formatDate = (dateString: string): string => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',

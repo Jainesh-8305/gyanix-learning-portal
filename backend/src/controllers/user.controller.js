@@ -11,10 +11,30 @@ const getMe = async (req, res, next) => {
       .populate('certificates');
 
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
     }
 
-    res.json({ success: true, data: user });
+    const enrollments = await Enrollment.find({ student: user._id });
+    const days = new Set(
+      enrollments
+        .flatMap((e) => e.completedLessons)
+        .filter((l) => l.completedAt)
+        .map((l) => l.completedAt.toISOString().slice(0, 10)),
+    );
+    let streak = 0;
+    const day = new Date();
+    if (!days.has(day.toISOString().slice(0, 10)))
+      day.setUTCDate(day.getUTCDate() - 1);
+    while (days.has(day.toISOString().slice(0, 10))) {
+      streak++;
+      day.setUTCDate(day.getUTCDate() - 1);
+    }
+    res.json({
+      success: true,
+      data: { ...user.toObject(), learningStreak: streak },
+    });
   } catch (error) {
     next(error);
   }
@@ -29,15 +49,20 @@ const updateProfile = async (req, res, next) => {
     if (name !== undefined) fieldsToUpdate.name = name;
     if (bio !== undefined) fieldsToUpdate.bio = bio;
     if (avatar !== undefined) fieldsToUpdate.avatar = avatar;
-    if (learningPreferences !== undefined) fieldsToUpdate.learningPreferences = learningPreferences;
+    if (learningPreferences !== undefined)
+      fieldsToUpdate.learningPreferences = learningPreferences;
 
     const user = await User.findByIdAndUpdate(
       req.user._id,
       { $set: fieldsToUpdate },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
 
-    res.json({ success: true, data: user, message: 'Profile updated successfully' });
+    res.json({
+      success: true,
+      data: user,
+      message: 'Profile updated successfully',
+    });
   } catch (error) {
     next(error);
   }
@@ -49,7 +74,7 @@ const getEnrolledCourses = async (req, res, next) => {
     const enrollments = await Enrollment.find({ student: req.user._id })
       .populate({
         path: 'course',
-        select: 'title category level thumbnail instructor price totalDuration',
+        select: 'title category level thumbnail instructor totalDuration',
         populate: { path: 'instructor', select: 'name avatar' },
       })
       .sort('-updatedAt');
@@ -63,7 +88,10 @@ const getEnrolledCourses = async (req, res, next) => {
 // ─── @GET /api/users/completed-courses ────────────────────────
 const getCompletedCourses = async (req, res, next) => {
   try {
-    const enrollments = await Enrollment.find({ student: req.user._id, isCompleted: true })
+    const enrollments = await Enrollment.find({
+      student: req.user._id,
+      isCompleted: true,
+    })
       .populate({
         path: 'course',
         select: 'title category level thumbnail instructor',

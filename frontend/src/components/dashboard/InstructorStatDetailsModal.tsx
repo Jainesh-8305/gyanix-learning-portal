@@ -1,12 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 import Link from 'next/link';
 import {
-  X, BookOpen, Users, Star, MessageSquare,
-  Copy, Check, ExternalLink, Edit3, Award, Sparkles,
-  BarChart2, ShieldCheck, Search
+  X,
+  BookOpen,
+  Users,
+  Star,
+  MessageSquare,
+  Copy,
+  Check,
+  ExternalLink,
+  Edit3,
+  Award,
+  BarChart2,
+  Search,
 } from 'lucide-react';
 
 interface InstructorStatDetailsModalProps {
@@ -27,9 +37,11 @@ export default function InstructorStatDetailsModal({
   type,
   onClose,
   data,
-  onTogglePublish,
   onCopyBatchCode,
 }: InstructorStatDetailsModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose, true);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
@@ -46,25 +58,31 @@ export default function InstructorStatDetailsModal({
   };
 
   // Filtered datasets
-  const filteredCourses = (data.courses || []).filter((c) =>
-    c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.classroomCode?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCourses = (data.courses || []).filter(
+    (c) =>
+      c.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.classroomCode?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const filteredStudents = (data.students || []).filter((s) =>
-    s.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.studentEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    s.courseTitle?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredStudents = (data.students || []).filter(
+    (s) =>
+      s.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.studentEmail?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      s.courseTitle?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
-  const filteredReviews = (data.reviews || []).filter((r) =>
-    r.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.courseTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    r.reviewText?.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredReviews = (data.reviews || []).filter(
+    (r) =>
+      r.studentName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.courseTitle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      r.reviewText?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-in fade-in">
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/80 backdrop-blur-md animate-in fade-in"
+    >
       <div className="glass-card max-w-4xl w-full rounded-3xl p-6 sm:p-8 border border-indigo-500/30 bg-[#0c0f24] space-y-6 max-h-[90vh] flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex items-start justify-between pb-4 border-b border-indigo-500/15">
@@ -97,14 +115,19 @@ export default function InstructorStatDetailsModal({
                 {type === 'ratings' && 'Ratings & Student Feedback Analysis'}
               </h2>
               <p className="text-xs text-indigo-200/60 mt-0.5">
-                {type === 'courses' && `Manage and review ${data.courses.length} courses published for students`}
-                {type === 'cadets' && `Detailed record of ${data.students.length} students enrolled in your courses`}
-                {type === 'reviews' && `${data.reviews.length} student evaluations and feedback submitted`}
-                {type === 'ratings' && `Real-time student satisfaction metrics and rating distribution`}
+                {type === 'courses' &&
+                  `Manage and review ${data.courses.length} courses published for students`}
+                {type === 'cadets' &&
+                  `Detailed record of ${data.students.length} students enrolled in your courses`}
+                {type === 'reviews' &&
+                  `${data.reviews.length} student evaluations and feedback submitted`}
+                {type === 'ratings' &&
+                  `Real-time student satisfaction metrics and rating distribution`}
               </p>
             </div>
           </div>
           <button
+            aria-label="Close dialog"
             onClick={onClose}
             className="text-indigo-300/60 hover:text-white p-1 rounded-xl transition cursor-pointer"
           >
@@ -124,8 +147,8 @@ export default function InstructorStatDetailsModal({
                 type === 'courses'
                   ? 'Search by course name or batch code...'
                   : type === 'cadets'
-                  ? 'Search by student name, email, or course...'
-                  : 'Search reviews...'
+                    ? 'Search by student name, email, or course...'
+                    : 'Search reviews...'
               }
               className="w-full pl-10 pr-4 py-2.5 rounded-2xl glass-input text-xs text-white placeholder-indigo-300/30 border border-indigo-500/20"
             />
@@ -171,11 +194,17 @@ export default function InstructorStatDetailsModal({
                           </button>
                         )}
                       </div>
-                      <h4 className="text-sm font-bold text-white">{c.title}</h4>
+                      <h4 className="text-sm font-bold text-white">
+                        {c.title}
+                      </h4>
                       <div className="flex items-center gap-4 text-xs text-indigo-200/70">
                         <span>👥 {c.totalStudents || 0} Students Enrolled</span>
-                        <span>⭐ {c.rating ? `${c.rating} / 5.0` : '5.0 / 5.0'}</span>
-                        <span className="text-teal-400 font-semibold">Free Academic Access</span>
+                        <span>
+                          ⭐ {c.rating ? `${c.rating} / 5.0` : 'No ratings'}
+                        </span>
+                        <span className="text-teal-400 font-semibold">
+                          Free Academic Access
+                        </span>
                       </div>
                     </div>
 
@@ -223,15 +252,22 @@ export default function InstructorStatDetailsModal({
                     </thead>
                     <tbody className="divide-y divide-indigo-500/10">
                       {filteredStudents.map((s: any, idx: number) => (
-                        <tr key={s.enrollmentId || idx} className="hover:bg-white/2 transition">
+                        <tr
+                          key={s.enrollmentId || idx}
+                          className="hover:bg-white/2 transition"
+                        >
                           <td className="py-3 px-3">
                             <div className="flex items-center gap-2.5">
                               <div className="w-7 h-7 rounded-full bg-teal-500/20 border border-teal-500/30 flex items-center justify-center text-teal-300 font-bold text-xs uppercase">
                                 {s.studentName?.[0] || 'C'}
                               </div>
                               <div>
-                                <p className="font-bold text-white text-xs">{s.studentName}</p>
-                                <p className="text-[11px] text-indigo-300/50">{s.studentEmail}</p>
+                                <p className="font-bold text-white text-xs">
+                                  {s.studentName}
+                                </p>
+                                <p className="text-[11px] text-indigo-300/50">
+                                  {s.studentEmail}
+                                </p>
                               </div>
                             </div>
                           </td>
@@ -246,7 +282,9 @@ export default function InstructorStatDetailsModal({
                               <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                                 <div
                                   className="h-full rounded-full bg-gradient-to-r from-teal-400 to-indigo-500"
-                                  style={{ width: `${s.progressPercentage || 0}%` }}
+                                  style={{
+                                    width: `${s.progressPercentage || 0}%`,
+                                  }}
                                 />
                               </div>
                               <span className="text-[11px] font-mono text-white font-semibold">
@@ -255,7 +293,9 @@ export default function InstructorStatDetailsModal({
                             </div>
                           </td>
                           <td className="py-3 px-3 text-indigo-300/60 text-[11px]">
-                            {s.enrolledAt ? new Date(s.enrolledAt).toLocaleDateString() : 'Active'}
+                            {s.enrolledAt
+                              ? new Date(s.enrolledAt).toLocaleDateString()
+                              : 'Active'}
                           </td>
                           <td className="py-3 px-3 text-right">
                             {s.isCompleted || s.progressPercentage === 100 ? (
@@ -283,9 +323,14 @@ export default function InstructorStatDetailsModal({
               {filteredReviews.length === 0 ? (
                 <div className="text-center py-12 p-6 rounded-2xl bg-white/2 border border-indigo-500/10 space-y-2">
                   <Star className="w-10 h-10 text-amber-400/30 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-white">No Written Student Reviews Yet</p>
+                  <p className="text-sm font-bold text-white">
+                    No Written Student Reviews Yet
+                  </p>
                   <p className="text-xs text-indigo-200/60 max-w-md mx-auto">
-                    Students are currently learning through your modules. As students complete the curriculum and submit course evaluations, their detailed testimonials and star ratings will be archived here.
+                    Students are currently learning through your modules. As
+                    students complete the curriculum and submit course
+                    evaluations, their detailed testimonials and star ratings
+                    will be archived here.
                   </p>
                 </div>
               ) : (
@@ -300,16 +345,22 @@ export default function InstructorStatDetailsModal({
                           {r.studentName?.[0] || 'C'}
                         </div>
                         <div>
-                          <p className="font-bold text-white text-xs">{r.studentName}</p>
-                          <p className="text-[10px] text-indigo-300/60">{r.courseTitle}</p>
+                          <p className="font-bold text-white text-xs">
+                            {r.studentName}
+                          </p>
+                          <p className="text-[10px] text-indigo-300/60">
+                            {r.courseTitle}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 bg-amber-500/15 px-2.5 py-1 rounded-xl border border-amber-500/30">
                         <span className="text-xs font-bold text-amber-300">
-                          {r.rating ? '★'.repeat(Math.min(5, Math.max(1, r.rating))) : '★★★★★'}
+                          {r.rating
+                            ? '★'.repeat(Math.min(5, Math.max(1, r.rating)))
+                            : '★★★★★'}
                         </span>
                         <span className="text-[11px] font-bold text-white ml-1">
-                          {r.rating || 5}.0
+                          {r.rating || 0}.0
                         </span>
                       </div>
                     </div>
@@ -317,7 +368,9 @@ export default function InstructorStatDetailsModal({
                       "{r.reviewText}"
                     </p>
                     <p className="text-[10px] text-indigo-300/40 text-right">
-                      {r.reviewedAt ? new Date(r.reviewedAt).toLocaleDateString() : 'Verified Enrollment'}
+                      {r.reviewedAt
+                        ? new Date(r.reviewedAt).toLocaleDateString()
+                        : 'Verified Enrollment'}
                     </p>
                   </div>
                 ))
@@ -336,7 +389,7 @@ export default function InstructorStatDetailsModal({
                   </span>
                   <div className="flex items-center gap-3">
                     <span className="text-4xl sm:text-5xl font-black text-white">
-                      {data.averageRating || '5.0'}
+                      {data.averageRating || '0.0'}
                     </span>
                     <div className="space-y-0.5">
                       <div className="flex text-amber-400 text-sm">
@@ -351,12 +404,29 @@ export default function InstructorStatDetailsModal({
 
                 <div className="grid grid-cols-2 gap-3 text-center w-full sm:w-auto">
                   <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                    <p className="text-xl font-black text-teal-300">100%</p>
-                    <p className="text-[10px] uppercase font-semibold text-indigo-200/60">Positive Feedback</p>
+                    <p className="text-xl font-black text-teal-300">
+                      {data.reviews?.length
+                        ? Math.round(
+                            (data.reviews.filter(
+                              (r: { rating?: number }) => (r.rating || 0) >= 4,
+                            ).length /
+                              data.reviews.length) *
+                              100,
+                          )
+                        : 0}
+                      %
+                    </p>
+                    <p className="text-[10px] uppercase font-semibold text-indigo-200/60">
+                      Positive Feedback
+                    </p>
                   </div>
                   <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                    <p className="text-xl font-black text-indigo-300">{data.courses.length}</p>
-                    <p className="text-[10px] uppercase font-semibold text-indigo-200/60">Active Curriculums</p>
+                    <p className="text-xl font-black text-indigo-300">
+                      {data.courses.length}
+                    </p>
+                    <p className="text-[10px] uppercase font-semibold text-indigo-200/60">
+                      Active Curriculums
+                    </p>
                   </div>
                 </div>
               </div>
@@ -368,13 +438,20 @@ export default function InstructorStatDetailsModal({
                   <span>Rating Breakdown</span>
                 </h4>
                 {[5, 4, 3, 2, 1].map((star) => {
-                  const count = data.ratingDistribution?.[String(star)] || (star === 5 ? data.courses.length : 0);
-                  const total = Math.max(1, (data.courses.length || 1));
+                  const count = data.ratingDistribution?.[String(star)] || 0;
+                  const total = Math.max(
+                    1,
+                    Object.values(data.ratingDistribution || {}).reduce(
+                      (n: number, value) => n + Number(value),
+                      0,
+                    ),
+                  );
                   const percentage = Math.round((count / total) * 100);
                   return (
                     <div key={star} className="flex items-center gap-3 text-xs">
                       <span className="w-10 font-bold text-indigo-200 flex items-center gap-1">
-                        {star} <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline" />
+                        {star}{' '}
+                        <Star className="w-3 h-3 text-amber-400 fill-amber-400 inline" />
                       </span>
                       <div className="flex-1 h-2 rounded-full bg-white/10 overflow-hidden">
                         <div
@@ -402,14 +479,16 @@ export default function InstructorStatDetailsModal({
                       className="p-4 rounded-2xl bg-white/3 border border-indigo-500/15 flex items-center justify-between"
                     >
                       <div className="space-y-0.5 max-w-[200px]">
-                        <p className="text-xs font-bold text-white truncate">{c.title}</p>
+                        <p className="text-xs font-bold text-white truncate">
+                          {c.title}
+                        </p>
                         <p className="text-[10px] text-indigo-300/60 font-mono">
                           Batch: {c.classroomCode || 'N/A'}
                         </p>
                       </div>
                       <div className="text-right">
                         <span className="text-sm font-black text-amber-300">
-                          {c.rating ? `${c.rating} ★` : '5.0 ★'}
+                          {c.rating ? `${c.rating} ★` : 'No ratings'}
                         </span>
                         <p className="text-[10px] text-indigo-300/50">
                           {c.totalStudents || 0} students

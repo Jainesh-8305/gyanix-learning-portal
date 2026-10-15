@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'next/navigation';
 import useSWR from 'swr';
 import Link from 'next/link';
@@ -22,39 +22,57 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 import AstroMascot from '@/components/ui/AstroMascot';
 
 const fetcher = (url: string) => api.get(url).then((r) => r.data);
 
 // ── Timer Hook ────────────────────────────────────────────────
-function useTimer(minutes: number, onExpire: () => void) {
-  const [seconds, setSeconds] = useState(minutes * 60);
-
+function useTimer(expiresAt: string | undefined, onExpire: () => void) {
+  const [seconds, setSeconds] = useState(0);
+  const callback = useRef(onExpire);
   useEffect(() => {
-    if (seconds <= 0) {
-      onExpire();
-      return;
-    }
-    const t = setTimeout(() => setSeconds((s) => s - 1), 1000);
-    return () => clearTimeout(t);
-  }, [seconds, onExpire]);
-
-  const mins = Math.floor(seconds / 60);
-  const secs = seconds % 60;
-  const isLow = seconds < 60;
-  return { mins, secs, isLow };
+    callback.current = onExpire;
+  });
+  useEffect(() => {
+    if (!expiresAt) return;
+    const deadline = new Date(expiresAt).getTime();
+    if (!Number.isFinite(deadline)) return;
+    let fired = false;
+    const tick = () => {
+      const remaining = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+      setSeconds(remaining);
+      if (remaining === 0 && !fired) {
+        fired = true;
+        callback.current();
+      }
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt]);
+  return {
+    mins: Math.floor(seconds / 60),
+    secs: seconds % 60,
+    isLow: seconds < 60,
+  };
 }
 
 export default function CourseQuizHubPage() {
   const params = useParams();
   const courseId = params.id as string;
 
-  const { data: courseData, isLoading: courseLoading } = useSWR(`/courses/${courseId}`, fetcher);
-  const { data: quizData, error: quizError, isLoading: quizLoading } = useSWR(
-    `/ai/course-quiz/${courseId}`,
+  const { data: courseData, isLoading: courseLoading } = useSWR(
+    `/courses/${courseId}`,
     fetcher,
-    { shouldRetryOnError: false }
   );
+  const {
+    data: quizData,
+    error: quizError,
+    isLoading: quizLoading,
+  } = useSWR(`/ai/course-quiz/${courseId}`, fetcher, {
+    shouldRetryOnError: false,
+  });
   const { data: enrollmentData } = useSWR('/enrollments/my', fetcher);
 
   const course = courseData?.data;
@@ -62,7 +80,7 @@ export default function CourseQuizHubPage() {
   const questions = quiz?.questions || [];
 
   const enrollment = enrollmentData?.data?.find(
-    (e: any) => e.course?._id === courseId || e.course === courseId
+    (e: any) => e.course?._id === courseId || e.course === courseId,
   );
 
   const [currentQ, setCurrentQ] = useState(0);
@@ -71,14 +89,21 @@ export default function CourseQuizHubPage() {
   const [result, setResult] = useState<any>(null);
   const [submitted, setSubmitted] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const confirmRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(
+    confirmRef,
+    () => setShowConfirmModal(false),
+    showConfirmModal,
+  );
 
-  const handleExpire = useCallback(() => {
-    toast.error('Time is up! Submitting your answers…');
-    handleSubmit();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [answers, questions]);
+  const handleExpire = () => {
+    if (!submitted && !submitting) {
+      toast.error('The server assessment deadline has arrived.');
+      void handleSubmit();
+    }
+  };
 
-  const { mins, secs, isLow } = useTimer(quiz?.timeLimit ?? 15, handleExpire);
+  const { mins, secs, isLow } = useTimer(quiz?.expiresAt, handleExpire);
 
   async function handleSubmit() {
     if (submitting || questions.length === 0) return;
@@ -87,12 +112,14 @@ export default function CourseQuizHubPage() {
     try {
       const res = await api.post(`/ai/course-quiz/${courseId}/submit`, {
         answers,
-        questions,
+        attemptId: quiz.attemptId,
       });
       setResult(res.data.data);
       setSubmitted(true);
       if (res.data.data?.passed) {
-        toast.success('🎉 Congratulations! You passed the AI Course Assessment!');
+        toast.success(
+          '🎉 Congratulations! You passed the AI Course Assessment!',
+        );
       } else {
         toast('Review the explanations and try again!', { icon: '📚' });
       }
@@ -110,23 +137,35 @@ export default function CourseQuizHubPage() {
   }
 
   // Check if locked: only if backend explicitly reported locked and questions are not available
-  const isLocked = Boolean(quizError?.response?.data?.isLocked) && !quiz?.questions?.length;
+  const isLocked =
+    Boolean(quizError?.response?.data?.isLocked) && !quiz?.questions?.length;
 
   const totalLessons =
     quizError?.response?.data?.totalLessons ||
-    course?.sections?.reduce((acc: number, s: any) => acc + (s.lessons?.length || 0), 0) ||
+    course?.sections?.reduce(
+      (acc: number, s: any) => acc + (s.lessons?.length || 0),
+      0,
+    ) ||
     0;
   const completedLessons =
-    quizError?.response?.data?.completedLessons || enrollment?.completedLessons?.length || 0;
-  const progressPct = totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
+    quizError?.response?.data?.completedLessons ||
+    enrollment?.completedLessons?.length ||
+    0;
+  const progressPct =
+    totalLessons > 0 ? Math.round((completedLessons / totalLessons) * 100) : 0;
 
   if (courseLoading || quizLoading) {
     return (
       <div className="min-h-[calc(100vh-4rem)] bg-transparent flex items-center justify-center p-6">
         <div className="glass-card rounded-2xl p-8 border border-indigo-500/25 shadow-2xl flex flex-col items-center gap-3 text-center">
           <div className="w-10 h-10 border-2 border-indigo-500/30 border-t-teal-400 rounded-full animate-spin" />
-          <p className="text-sm text-white font-bold">Synthesizing Course-Specific AI Assessment Quiz...</p>
-          <p className="text-xs text-indigo-200/60 max-w-xs">Generating in-depth technical questions directly from the syllabus.</p>
+          <p className="text-sm text-white font-bold">
+            Loading your saved assessment...
+          </p>
+          <p className="text-xs text-indigo-200/60 max-w-xs">
+            Checking enrollment, lesson completion and the server attempt
+            deadline.
+          </p>
         </div>
       </div>
     );
@@ -156,7 +195,9 @@ export default function CourseQuizHubPage() {
                 AI Assessment Quiz Locked
               </h1>
               <p className="text-sm text-indigo-200/70 mt-2 leading-relaxed">
-                To guarantee academic mastery, scholars must complete all <strong>{totalLessons} video lectures</strong> before attending the AI Assessment Quiz and unlocking graduation credentials.
+                Complete all <strong>{totalLessons} video lectures</strong>{' '}
+                before attending the AI Assessment Quiz and unlocking a project
+                course-completion certificate.
               </p>
             </div>
 
@@ -229,9 +270,9 @@ export default function CourseQuizHubPage() {
                 {passed ? '🎉 Assessment Passed!' : '📚 Keep Exploring!'}
               </h1>
               <p className="text-sm text-indigo-200/70 mt-1">
-                You scored <strong className="text-white">{score}</strong> out of{' '}
-                <strong className="text-white">{total}</strong> questions correctly. (Passing:{' '}
-                {result.passingScore}%)
+                You scored <strong className="text-white">{score}</strong> out
+                of <strong className="text-white">{total}</strong> questions
+                correctly. (Passing: {result.passingScore}%)
               </p>
             </div>
 
@@ -285,7 +326,13 @@ export default function CourseQuizHubPage() {
                       </p>
                       <p className="text-indigo-200/60 mt-1">
                         Your answer:{' '}
-                        <span className={r.isCorrect ? 'text-teal-300 font-bold' : 'text-rose-300 font-bold'}>
+                        <span
+                          className={
+                            r.isCorrect
+                              ? 'text-teal-300 font-bold'
+                              : 'text-rose-300 font-bold'
+                          }
+                        >
                           {r.studentAnswer || 'Unanswered'}
                         </span>
                       </p>
@@ -332,7 +379,8 @@ export default function CourseQuizHubPage() {
   // ── Quiz Active Taking Screen ──────────────────────────────────
   const q = questions[currentQ];
   const totalQ = questions.length;
-  const currentProgressPct = totalQ > 0 ? Math.round(((currentQ + 1) / totalQ) * 100) : 0;
+  const currentProgressPct =
+    totalQ > 0 ? Math.round(((currentQ + 1) / totalQ) * 100) : 0;
   const answeredCount = Object.keys(answers).length;
 
   return (
@@ -342,31 +390,42 @@ export default function CourseQuizHubPage() {
 
       {/* Confirmation Modal For Submitting Quiz Early */}
       {showConfirmModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+        <div
+          ref={confirmRef}
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+        >
           <div className="glass-card max-w-md w-full rounded-3xl p-6 sm:p-8 border border-indigo-500/30 shadow-2xl space-y-5">
             <div className="w-12 h-12 rounded-2xl bg-teal-500/15 border border-teal-400/40 text-teal-300 flex items-center justify-center mx-auto text-xl shadow-lg">
               🎯
             </div>
 
             <div className="text-center space-y-1">
-              <h3 className="text-lg font-bold text-white">Ready to Submit Quiz?</h3>
+              <h3 className="text-lg font-bold text-white">
+                Ready to Submit Quiz?
+              </h3>
               <p className="text-xs text-indigo-200/70">
-                You do not need to wait for the 15-minute timer to finish! Your answers will be graded by Gyanix AI instantly.
+                You do not need to wait for the 15-minute timer to finish! The
+                server will compare your answers against the stored answer key.
               </p>
             </div>
 
             <div className="bg-[#05060f]/80 p-4 rounded-2xl border border-indigo-500/20 space-y-2 text-xs">
               <div className="flex justify-between text-indigo-200">
                 <span>Questions Answered:</span>
-                <span className="font-bold text-white">{answeredCount} of {totalQ}</span>
+                <span className="font-bold text-white">
+                  {answeredCount} of {totalQ}
+                </span>
               </div>
               <div className="flex justify-between text-indigo-200">
                 <span>Time Remaining:</span>
-                <span className="font-bold text-teal-300">{mins}m {secs}s</span>
+                <span className="font-bold text-teal-300">
+                  {mins}m {secs}s
+                </span>
               </div>
               {answeredCount < totalQ && (
                 <p className="text-amber-300/90 text-[11px] pt-1 border-t border-indigo-500/15">
-                  ⚠️ You have {totalQ - answeredCount} unanswered questions. Unanswered questions receive 0 points.
+                  ⚠️ You have {totalQ - answeredCount} unanswered questions.
+                  Unanswered questions receive 0 points.
                 </p>
               )}
             </div>
@@ -396,6 +455,13 @@ export default function CourseQuizHubPage() {
       )}
 
       <div className="max-w-2xl w-full mx-auto space-y-6 relative z-10">
+        <p className="text-sm text-indigo-200">
+          {quiz.generationMode === 'offline'
+            ? 'Offline template assessment - generic practice questions; not live AI.'
+            : quiz.generationMode === 'live'
+              ? 'Questions drafted using OpenAI; scored against a saved answer key.'
+              : 'Saved assessment; scored against the instructor answer key.'}
+        </p>
         {/* Header Bar */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <Link
@@ -416,7 +482,9 @@ export default function CourseQuizHubPage() {
               title="Submit quiz immediately without waiting for the timer to expire"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Submit Early ({answeredCount}/{totalQ})</span>
+              <span>
+                Submit Early ({answeredCount}/{totalQ})
+              </span>
             </button>
 
             {/* Timer Pill */}
@@ -441,7 +509,9 @@ export default function CourseQuizHubPage() {
           {/* Progress Header */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs font-bold text-indigo-200/70">
-              <span className="text-teal-400 font-semibold">{course?.title}</span>
+              <span className="text-teal-400 font-semibold">
+                {course?.title}
+              </span>
               <span>
                 Question {currentQ + 1} of {totalQ}
               </span>
@@ -478,7 +548,12 @@ export default function CourseQuizHubPage() {
                     <button
                       key={i}
                       type="button"
-                      onClick={() => setAnswers((prev) => ({ ...prev, [currentQ]: optionText }))}
+                      onClick={() =>
+                        setAnswers((prev) => ({
+                          ...prev,
+                          [currentQ]: optionText,
+                        }))
+                      }
                       className={`w-full text-left p-4 rounded-2xl border transition-all flex items-center gap-4 cursor-pointer ${
                         isSelected
                           ? 'bg-indigo-600/25 border-teal-400/60 shadow-lg shadow-indigo-600/20'
@@ -494,7 +569,9 @@ export default function CourseQuizHubPage() {
                       >
                         {letter}
                       </span>
-                      <span className={`text-xs sm:text-sm font-medium ${isSelected ? 'text-white' : 'text-indigo-100/80'}`}>
+                      <span
+                        className={`text-xs sm:text-sm font-medium ${isSelected ? 'text-white' : 'text-indigo-100/80'}`}
+                      >
                         {optionText}
                       </span>
                     </button>
@@ -545,7 +622,9 @@ export default function CourseQuizHubPage() {
               className="flex-1 py-3 px-6 rounded-xl glow-btn-teal text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition shadow-lg disabled:opacity-50"
             >
               <Trophy className="w-4 h-4" />
-              <span>{submitting ? 'Submitting & Grading…' : 'Submit AI Quiz 🚀'}</span>
+              <span>
+                {submitting ? 'Submitting & Grading…' : 'Submit AI Quiz 🚀'}
+              </span>
             </button>
           )}
         </div>
@@ -565,8 +644,8 @@ export default function CourseQuizHubPage() {
                   isCurrent
                     ? 'bg-teal-400 scale-125 shadow-[0_0_8px_#2dd4bf]'
                     : isAnswered
-                    ? 'bg-indigo-400'
-                    : 'bg-white/15 hover:bg-white/30'
+                      ? 'bg-indigo-400'
+                      : 'bg-white/15 hover:bg-white/30'
                 }`}
                 title={`Question ${idx + 1}`}
               />

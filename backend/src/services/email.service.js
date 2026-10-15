@@ -18,7 +18,10 @@ const transporter = nodemailer.createTransport({
 // Verify connection on startup (logs warning, doesn't crash the server)
 transporter.verify((error) => {
   if (error) {
-    console.error('⚠️ SMTP Notice (Gmail App Password required for production delivery):', error.message);
+    console.error(
+      '⚠️ SMTP Notice (Gmail App Password required for production delivery):',
+      error.message,
+    );
   } else {
     console.log('✅ Gyanix Academy SMTP Email Service Ready');
   }
@@ -37,7 +40,7 @@ const wrapEmail = (bodyHtml) => `
       <tr>
         <td align="center">
           <table width="100%" border="0" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #0a0d20; border-radius: 20px; border: 1px solid rgba(99, 102, 241, 0.25); box-shadow: 0 20px 50px rgba(0,0,0,0.8); overflow: hidden;">
-            
+
             <!-- Header with Gyanix Academy Insignia -->
             <tr>
               <td align="center" style="padding: 36px 30px 20px; background: linear-gradient(180deg, rgba(99, 102, 241, 0.12) 0%, rgba(10, 13, 32, 0) 100%);">
@@ -80,7 +83,8 @@ const wrapEmail = (bodyHtml) => `
   </html>
 `;
 
-const FROM = process.env.EMAIL_FROM || '"Gyanix Academy" <security@gyanix-academy.com>';
+const FROM =
+  process.env.EMAIL_FROM || '"Gyanix Academy" <security@gyanix-academy.com>';
 
 // ─── Welcome Email (sent on registration) ─────────────────────
 const sendWelcomeEmail = async (toEmail, name) => {
@@ -117,13 +121,6 @@ const sendWelcomeEmail = async (toEmail, name) => {
 const sendPasswordReset = async (toEmail, resetToken) => {
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
 
-  // Log direct link to console for immediate development access
-  console.log('───────────────────────────────────────────────────────');
-  console.log('🔐 [GYANIX ACADEMY PASSWORD RESET LINK]');
-  console.log(`Email: ${toEmail}`);
-  console.log(`Reset URL: ${resetUrl}`);
-  console.log('───────────────────────────────────────────────────────');
-
   try {
     await transporter.sendMail({
       from: FROM,
@@ -143,7 +140,7 @@ const sendPasswordReset = async (toEmail, resetToken) => {
           <p style="color: #ffffff; font-size: 14px; margin: 0 0 20px; line-height: 1.5;">
             Click the secure button below to set your new credentials. This security token will expire in <strong style="color: #2dd4bf;">10 minutes</strong>.
           </p>
-          
+
           <a href="${resetUrl}"
             style="display: inline-block; background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; text-decoration: none; padding: 14px 34px; border-radius: 10px; font-weight: 700; font-size: 14px; box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);">
             Reset Account Password →
@@ -165,7 +162,10 @@ const sendPasswordReset = async (toEmail, resetToken) => {
       `),
     });
   } catch (error) {
-    console.error('SMTP Delivery note:', error.message);
+    console.error('SMTP delivery unavailable:', error.code || 'unknown');
+    throw Object.assign(new Error('Password reset delivery unavailable'), {
+      statusCode: 503,
+    });
   }
 };
 
@@ -210,7 +210,12 @@ const sendCourseApproved = async (toEmail, instructorName, courseTitle) => {
 };
 
 // ─── Course Rejected Email (sent to instructor) ────────────────
-const sendCourseRejected = async (toEmail, instructorName, courseTitle, feedback) => {
+const sendCourseRejected = async (
+  toEmail,
+  instructorName,
+  courseTitle,
+  feedback,
+) => {
   try {
     await transporter.sendMail({
       from: FROM,
@@ -228,14 +233,18 @@ const sendCourseRejected = async (toEmail, instructorName, courseTitle, feedback
           <p style="color: #ffffff; font-size: 16px; font-weight: 700; margin: 0 0 14px;">
             "${courseTitle}"
           </p>
-          ${feedback ? `
+          ${
+            feedback
+              ? `
             <p style="color: #fb7185; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">
               Admin Review Notes:
             </p>
             <div style="color: #e0e7ff; background: rgba(0, 0, 0, 0.3); border-left: 3px solid #fb7185; border-radius: 6px; padding: 12px; margin: 0; font-size: 13px; line-height: 1.5;">
               ${feedback}
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
 
         <div style="text-align: center; margin-top: 24px;">
@@ -252,7 +261,12 @@ const sendCourseRejected = async (toEmail, instructorName, courseTitle, feedback
 };
 
 // ─── Certificate Issued Email (sent to student) ────────────────
-const sendCertificateIssued = async (toEmail, studentName, courseTitle, certificateUrl) => {
+const sendCertificateIssued = async (
+  toEmail,
+  studentName,
+  courseTitle,
+  certificateUrl,
+) => {
   try {
     await transporter.sendMail({
       from: FROM,
@@ -282,41 +296,14 @@ const sendCertificateIssued = async (toEmail, studentName, courseTitle, certific
   }
 };
 
-// ─── Payment Receipt Email (sent to student) ───────────────────
-const sendPaymentReceipt = async (toEmail, studentName, courseTitle, amountPaid) => {
-  try {
-    await transporter.sendMail({
-      from: FROM,
-      to: toEmail,
-      subject: `🧾 Payment Confirmation — "${courseTitle}"`,
-      html: wrapEmail(`
-        <h1 style="color: #ffffff; font-size: 22px; font-weight: 700; text-align: center; margin: 0 0 10px;">
-          Enrollment Confirmed ✅
-        </h1>
-        <p style="color: rgba(199, 210, 254, 0.8); text-align: center; margin: 0 0 20px;">
-          Hi ${studentName}, your course purchase is confirmed.
-        </p>
-        <div style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 14px; padding: 20px; margin: 20px 0;">
-          <table width="100%" style="color: #ffffff; font-size: 14px;">
-            <tr>
-              <td style="color: rgba(199, 210, 254, 0.6); padding: 6px 0;">Program:</td>
-              <td style="text-align: right; font-weight: 600;">${courseTitle}</td>
-            </tr>
-            <tr>
-              <td style="color: rgba(199, 210, 254, 0.6); padding: 6px 0;">Amount Paid:</td>
-              <td style="text-align: right; font-weight: 700; color: #2dd4bf;">$${amountPaid.toFixed(2)}</td>
-            </tr>
-          </table>
-        </div>
-      `),
-    });
-  } catch (error) {
-    console.error('Payment receipt email note:', error.message);
-  }
-};
-
 // ─── Course Edit / Change Request Email (sent to instructor) ─────
-const sendCourseChangeRequest = async (toEmail, instructorName, courseTitle, feedback, actionNeeded) => {
+const sendCourseChangeRequest = async (
+  toEmail,
+  instructorName,
+  courseTitle,
+  feedback,
+  actionNeeded,
+) => {
   try {
     await transporter.sendMail({
       from: FROM,
@@ -331,16 +318,24 @@ const sendCourseChangeRequest = async (toEmail, instructorName, courseTitle, fee
         </p>
         <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.25); border-radius: 14px; padding: 24px; margin: 20px 0;">
           <p style="color: #ffffff; font-size: 17px; font-weight: 600; margin: 0 0 16px;">"${courseTitle}"</p>
-          ${actionNeeded ? `
+          ${
+            actionNeeded
+              ? `
             <p style="color: #f59e0b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">Status Update:</p>
             <p style="color: #e0e7ff; margin: 0 0 14px; font-size: 14px;">${actionNeeded}</p>
-          ` : ''}
-          ${feedback ? `
+          `
+              : ''
+          }
+          ${
+            feedback
+              ? `
             <p style="color: #f59e0b; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 6px;">Admin Instructions / Feedback:</p>
             <div style="color: #e0e7ff; background: rgba(0,0,0,0.3); border-left: 3px solid #f59e0b; border-radius: 6px; padding: 14px; margin: 0; font-size: 14px; line-height: 1.5;">
               ${feedback}
             </div>
-          ` : ''}
+          `
+              : ''
+          }
         </div>
       `),
     });
@@ -356,5 +351,4 @@ module.exports = {
   sendCourseRejected,
   sendCourseChangeRequest,
   sendCertificateIssued,
-  sendPaymentReceipt,
 };

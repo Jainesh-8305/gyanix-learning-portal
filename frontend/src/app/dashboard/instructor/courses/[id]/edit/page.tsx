@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import useSWR from 'swr';
-import toast from 'react-hot-toast';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import useSWR from "swr";
+import toast from "react-hot-toast";
 import {
   Plus,
   Trash2,
@@ -14,16 +14,14 @@ import {
   GripVertical,
   AlertTriangle,
   BookOpen,
-  DollarSign,
   ListOrdered,
   Sparkles,
   Save,
   ArrowLeft,
   ExternalLink,
-  CheckCircle,
-} from 'lucide-react';
-import Link from 'next/link';
-import api from '@/lib/api';
+} from "lucide-react";
+import Link from "next/link";
+import api from "@/lib/api";
 
 const fetcher = (url: string) => api.get(url).then((r) => r.data);
 
@@ -49,20 +47,20 @@ export default function EditCoursePage() {
   const params = useParams();
   const router = useRouter();
 
-  const [activeTab, setActiveTab] = useState<'curriculum' | 'details' | 'outcomes'>('curriculum');
+  const [activeTab, setActiveTab] = useState<
+    "curriculum" | "details" | "outcomes"
+  >("curriculum");
 
   // Course fields
-  const [title, setTitle] = useState('');
-  const [shortDescription, setShortDescription] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState('web-development');
-  const [level, setLevel] = useState('beginner');
-  const [price, setPrice] = useState<number | string>(0);
-  const [discountPrice, setDiscountPrice] = useState<number | string>(0);
-  const [thumbnail, setThumbnail] = useState('');
+  const [title, setTitle] = useState("");
+  const [shortDescription, setShortDescription] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("web-development");
+  const [level, setLevel] = useState("beginner");
+  const [thumbnail, setThumbnail] = useState("");
   const [tags, setTags] = useState<string[]>([]);
-  const [learningOutcomes, setLearningOutcomes] = useState<string[]>(['']);
-  const [requirements, setRequirements] = useState<string[]>(['']);
+  const [learningOutcomes, setLearningOutcomes] = useState<string[]>([""]);
+  const [requirements, setRequirements] = useState<string[]>([""]);
 
   // Sections
   const [sections, setSections] = useState<Section[]>([]);
@@ -75,17 +73,17 @@ export default function EditCoursePage() {
 
   useEffect(() => {
     if (!loaded && course) {
-      setTitle(course.title || '');
-      setShortDescription(course.shortDescription || '');
-      setDescription(course.description || '');
-      setCategory(course.category || 'web-development');
-      setLevel(course.level || 'beginner');
-      setPrice(course.price ?? 0);
-      setDiscountPrice(course.discountPrice ?? 0);
-      setThumbnail(course.thumbnail || '');
+      setTitle(course.title || "");
+      setShortDescription(course.shortDescription || "");
+      setDescription(course.description || "");
+      setCategory(course.category || "web-development");
+      setLevel(course.level || "beginner");
+      setThumbnail(course.thumbnail || "");
       setTags(course.tags || []);
-      setLearningOutcomes(course.learningOutcomes?.length ? course.learningOutcomes : ['']);
-      setRequirements(course.requirements?.length ? course.requirements : ['']);
+      setLearningOutcomes(
+        course.learningOutcomes?.length ? course.learningOutcomes : [""],
+      );
+      setRequirements(course.requirements?.length ? course.requirements : [""]);
 
       if (course.sections) {
         setSections(
@@ -94,13 +92,14 @@ export default function EditCoursePage() {
             expanded: true,
             lessons: (s.lessons || []).map((l: Lesson) => ({
               ...l,
-              videoUrl: l.videoUrl ?? '',
-              title: l.title ?? '',
-              content: l.content ?? '',
-              duration: l.duration ?? 0,
+              videoUrl: l.videoUrl ?? "",
+              title: l.title ?? "",
+              content: l.content ?? "",
+              duration:
+                (l as Lesson & { videoDuration?: number }).videoDuration ?? 0,
               isFree: !!l.isFree,
             })),
-          }))
+          })),
         );
       }
       setLoaded(true);
@@ -112,7 +111,7 @@ export default function EditCoursePage() {
     setSections((prev) => [
       ...prev,
       {
-        title: '',
+        title: "",
         order: prev.length + 1,
         lessons: [],
         expanded: true,
@@ -121,7 +120,9 @@ export default function EditCoursePage() {
   };
 
   const updateSection = (index: number, key: string, value: any) => {
-    setSections((prev) => prev.map((s, i) => (i === index ? { ...s, [key]: value } : s)));
+    setSections((prev) =>
+      prev.map((s, i) => (i === index ? { ...s, [key]: value } : s)),
+    );
   };
 
   const removeSection = (index: number) => {
@@ -137,30 +138,37 @@ export default function EditCoursePage() {
               lessons: [
                 ...s.lessons,
                 {
-                  title: '',
-                  videoUrl: '',
+                  title: "",
+                  videoUrl: "",
                   duration: 0,
-                  content: '',
+                  content: "",
                   isFree: false,
                   order: s.lessons.length + 1,
                 },
               ],
             }
-          : s
-      )
+          : s,
+      ),
     );
   };
 
-  const updateLesson = (sectionIndex: number, lessonIndex: number, key: string, value: any) => {
+  const updateLesson = (
+    sectionIndex: number,
+    lessonIndex: number,
+    key: string,
+    value: any,
+  ) => {
     setSections((prev) =>
       prev.map((s, i) =>
         i === sectionIndex
           ? {
               ...s,
-              lessons: s.lessons.map((l, j) => (j === lessonIndex ? { ...l, [key]: value ?? '' } : l)),
+              lessons: s.lessons.map((l, j) =>
+                j === lessonIndex ? { ...l, [key]: value ?? "" } : l,
+              ),
             }
-          : s
-      )
+          : s,
+      ),
     );
   };
 
@@ -172,13 +180,17 @@ export default function EditCoursePage() {
               ...s,
               lessons: s.lessons.filter((_, j) => j !== lessonIndex),
             }
-          : s
-      )
+          : s,
+      ),
     );
   };
 
   // ── Array Helpers for Outcomes & Requirements ────────────────────
-  const handleArrayChange = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number, val: string) => {
+  const handleArrayChange = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    index: number,
+    val: string,
+  ) => {
     setter((prev) => {
       const copy = [...prev];
       copy[index] = val;
@@ -186,11 +198,16 @@ export default function EditCoursePage() {
     });
   };
 
-  const addArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>) => {
-    setter((prev) => [...prev, '']);
+  const addArrayItem = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+  ) => {
+    setter((prev) => [...prev, ""]);
   };
 
-  const removeArrayItem = (setter: React.Dispatch<React.SetStateAction<string[]>>, index: number) => {
+  const removeArrayItem = (
+    setter: React.Dispatch<React.SetStateAction<string[]>>,
+    index: number,
+  ) => {
     setter((prev) => prev.filter((_, i) => i !== index));
   };
 
@@ -204,8 +221,6 @@ export default function EditCoursePage() {
         description,
         category,
         level,
-        price: Number(price) || 0,
-        discountPrice: Number(discountPrice) || 0,
         thumbnail,
         tags,
         learningOutcomes: learningOutcomes.filter((o) => o.trim()),
@@ -216,18 +231,21 @@ export default function EditCoursePage() {
           lessons: s.lessons.map((l, lIdx) => ({
             ...l,
             order: lIdx + 1,
-            videoUrl: l.videoUrl ?? '',
-            title: l.title ?? '',
-            duration: Number(l.duration) || 0,
+            videoUrl: l.videoUrl ?? "",
+            title: l.title ?? "",
+            videoDuration: Number(l.duration) || 0,
           })),
         })),
       };
 
       await api.put(`/courses/${params.id}`, payload);
-      toast.success('Course updated successfully!');
+      toast.success("Course updated successfully!");
       mutate();
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to save course changes');
+      toast.error(
+        error.response?.data?.message || "Failed to save course changes",
+      );
+      throw error;
     } finally {
       setSaving(false);
     }
@@ -236,11 +254,11 @@ export default function EditCoursePage() {
   // ── Submit Course For Review / Re-publish ────────────────────────
   const handleSubmitForReview = async () => {
     if (!title.trim()) {
-      toast.error('Course title is required');
+      toast.error("Course title is required");
       return;
     }
     if (sections.length === 0) {
-      toast.error('Add at least one section before submitting');
+      toast.error("Add at least one section before submitting");
       return;
     }
 
@@ -250,10 +268,10 @@ export default function EditCoursePage() {
       await handleSave();
       // 2. Trigger submit for review
       await api.post(`/courses/${params.id}/submit`);
-      toast.success('Course submitted to Admin review queue!');
-      router.push('/dashboard/instructor');
+      toast.success("Course submitted to Admin review queue!");
+      router.push("/dashboard/instructor");
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Submission failed');
+      toast.error(error.response?.data?.message || "Submission failed");
     } finally {
       setSubmitting(false);
     }
@@ -264,7 +282,9 @@ export default function EditCoursePage() {
       <div className="min-h-[calc(100vh-4rem)] bg-[#05060f] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-2 border-teal-500/20 border-t-teal-400 rounded-full animate-spin" />
-          <p className="text-xs text-indigo-200/60 font-medium">Loading Course Workspace...</p>
+          <p className="text-xs text-indigo-200/60 font-medium">
+            Loading Course Workspace...
+          </p>
         </div>
       </div>
     );
@@ -291,7 +311,7 @@ export default function EditCoursePage() {
               Edit Course Studio
             </h1>
             <p className="text-xs text-indigo-200/60">
-              Update course curriculum, pricing, media, and learning objectives.
+              Update course curriculum, media, and learning objectives.
             </p>
           </div>
 
@@ -311,7 +331,7 @@ export default function EditCoursePage() {
               className="px-4 py-2.5 rounded-xl border border-indigo-500/25 bg-white/5 hover:bg-white/10 text-xs font-semibold text-indigo-200 hover:text-white transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>{saving ? 'Saving...' : 'Save Draft'}</span>
+              <span>{saving ? "Saving..." : "Save Draft"}</span>
             </button>
             <button
               type="button"
@@ -320,7 +340,7 @@ export default function EditCoursePage() {
               className="px-5 py-2.5 rounded-xl glow-btn-teal text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50 shadow-lg cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
-              <span>{submitting ? 'Submitting...' : 'Submit for Review'}</span>
+              <span>{submitting ? "Submitting..." : "Submit for Review"}</span>
             </button>
           </div>
         </div>
@@ -339,7 +359,8 @@ export default function EditCoursePage() {
                 {course.adminFeedback}
               </p>
               <p className="text-[11px] text-amber-200/60 pt-1">
-                Make your edits below across any section, details, or lectures, then click <strong>"Submit for Review"</strong> to re-publish.
+                Make your edits below across any section, details, or lectures,
+                then click <strong>"Submit for Review"</strong> to re-publish.
               </p>
             </div>
           </div>
@@ -348,9 +369,21 @@ export default function EditCoursePage() {
         {/* ── Tabs Toolbar ────────────────────────────────────────── */}
         <div className="glass-card rounded-2xl p-2 flex flex-wrap gap-2 border border-indigo-500/20">
           {[
-            { id: 'curriculum', label: '1. Curriculum & Lectures', icon: ListOrdered },
-            { id: 'details', label: '2. Course Details & Media', icon: BookOpen },
-            { id: 'outcomes', label: '3. Outcomes & Prerequisites', icon: Sparkles },
+            {
+              id: "curriculum",
+              label: "1. Curriculum & Lectures",
+              icon: ListOrdered,
+            },
+            {
+              id: "details",
+              label: "2. Course Details & Media",
+              icon: BookOpen,
+            },
+            {
+              id: "outcomes",
+              label: "3. Outcomes & Prerequisites",
+              icon: Sparkles,
+            },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -361,8 +394,8 @@ export default function EditCoursePage() {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`flex-1 min-w-40 py-2.5 px-4 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center justify-center gap-2 ${
                   isActive
-                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
-                    : 'text-indigo-200/70 hover:text-white hover:bg-white/5'
+                    ? "bg-indigo-600 text-white shadow-lg shadow-indigo-600/30"
+                    : "text-indigo-200/70 hover:text-white hover:bg-white/5"
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -373,7 +406,7 @@ export default function EditCoursePage() {
         </div>
 
         {/* ── TAB 1: Curriculum & Sections ────────────────────────── */}
-        {activeTab === 'curriculum' && (
+        {activeTab === "curriculum" && (
           <div className="space-y-4">
             {sections.map((section, sIndex) => (
               <div
@@ -387,18 +420,27 @@ export default function EditCoursePage() {
                     Section {sIndex + 1}:
                   </span>
                   <input
-                    value={section.title ?? ''}
-                    onChange={(e) => updateSection(sIndex, 'title', e.target.value)}
+                    aria-label="e.g. Introduction & Fundamentals"
+                    value={section.title ?? ""}
+                    onChange={(e) =>
+                      updateSection(sIndex, "title", e.target.value)
+                    }
                     placeholder="e.g. Introduction & Fundamentals"
                     className="flex-1 bg-transparent text-white font-bold placeholder-indigo-300/30 focus:outline-none text-sm"
                   />
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      onClick={() => updateSection(sIndex, 'expanded', !section.expanded)}
+                      onClick={() =>
+                        updateSection(sIndex, "expanded", !section.expanded)
+                      }
                       className="p-1.5 rounded-lg hover:bg-white/10 text-indigo-300/60 hover:text-white transition"
                     >
-                      {section.expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      {section.expanded ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
                     </button>
                     <button
                       type="button"
@@ -424,8 +466,16 @@ export default function EditCoursePage() {
                             {sIndex + 1}.{lIndex + 1}
                           </span>
                           <input
-                            value={lesson.title ?? ''}
-                            onChange={(e) => updateLesson(sIndex, lIndex, 'title', e.target.value)}
+                            aria-label="Lesson title (e.g. Setting up the Development Environment)"
+                            value={lesson.title ?? ""}
+                            onChange={(e) =>
+                              updateLesson(
+                                sIndex,
+                                lIndex,
+                                "title",
+                                e.target.value,
+                              )
+                            }
                             placeholder="Lesson title (e.g. Setting up the Development Environment)"
                             className="flex-1 px-3.5 py-2.5 rounded-xl glass-input text-xs text-white placeholder-indigo-300/30 focus:outline-none"
                           />
@@ -442,17 +492,33 @@ export default function EditCoursePage() {
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                           <div className="sm:col-span-2">
                             <input
-                              value={lesson.videoUrl ?? ''}
-                              onChange={(e) => updateLesson(sIndex, lIndex, 'videoUrl', e.target.value)}
+                              aria-label="Video Stream URL (YouTube, Vimeo, Cloudinary, MP4)"
+                              value={lesson.videoUrl ?? ""}
+                              onChange={(e) =>
+                                updateLesson(
+                                  sIndex,
+                                  lIndex,
+                                  "videoUrl",
+                                  e.target.value,
+                                )
+                              }
                               placeholder="Video Stream URL (YouTube, Vimeo, Cloudinary, MP4)"
                               className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-white placeholder-indigo-300/30 focus:outline-none"
                             />
                           </div>
                           <div>
                             <input
+                              aria-label="Duration (mins)"
                               type="number"
                               value={lesson.duration ?? 0}
-                              onChange={(e) => updateLesson(sIndex, lIndex, 'duration', e.target.value)}
+                              onChange={(e) =>
+                                updateLesson(
+                                  sIndex,
+                                  lIndex,
+                                  "duration",
+                                  e.target.value,
+                                )
+                              }
                               placeholder="Duration (mins)"
                               className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-white placeholder-indigo-300/30 focus:outline-none"
                             />
@@ -464,10 +530,20 @@ export default function EditCoursePage() {
                             <input
                               type="checkbox"
                               checked={!!lesson.isFree}
-                              onChange={(e) => updateLesson(sIndex, lIndex, 'isFree', e.target.checked)}
+                              onChange={(e) =>
+                                updateLesson(
+                                  sIndex,
+                                  lIndex,
+                                  "isFree",
+                                  e.target.checked,
+                                )
+                              }
                               className="accent-teal-400 rounded cursor-pointer"
                             />
-                            <span>Allow Free Preview Lesson (Students can watch without enrolling)</span>
+                            <span>
+                              Allow Free Preview Lesson (Students can watch
+                              without enrolling)
+                            </span>
                           </label>
                         </div>
                       </div>
@@ -498,16 +574,20 @@ export default function EditCoursePage() {
         )}
 
         {/* ── TAB 2: Course Details & Media ───────────────────────── */}
-        {activeTab === 'details' && (
+        {activeTab === "details" && (
           <div className="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/20 space-y-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
+                <label
+                  htmlFor="field-editpagetsx-1"
+                  className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2"
+                >
                   Course Title
                 </label>
                 <input
+                  id="field-editpagetsx-1"
                   type="text"
-                  value={title ?? ''}
+                  value={title ?? ""}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g. Master Full-Stack Web Development with AI"
                   className="w-full px-4 py-3 rounded-xl glass-input text-sm text-white placeholder-indigo-300/30 focus:outline-none"
@@ -515,12 +595,16 @@ export default function EditCoursePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
+                <label
+                  htmlFor="field-editpagetsx-2"
+                  className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2"
+                >
                   Short Tagline / Summary (Shown on Cards)
                 </label>
                 <input
+                  id="field-editpagetsx-2"
                   type="text"
-                  value={shortDescription ?? ''}
+                  value={shortDescription ?? ""}
                   onChange={(e) => setShortDescription(e.target.value)}
                   placeholder="A concise 1-2 sentence hook for your course"
                   className="w-full px-4 py-3 rounded-xl glass-input text-sm text-white placeholder-indigo-300/30 focus:outline-none"
@@ -528,12 +612,16 @@ export default function EditCoursePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
+                <label
+                  htmlFor="field-editpagetsx-3"
+                  className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2"
+                >
                   Full Course Description
                 </label>
                 <textarea
+                  id="field-editpagetsx-3"
                   rows={6}
-                  value={description ?? ''}
+                  value={description ?? ""}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Detailed overview of what students will achieve, modules covered, and final projects..."
                   className="w-full p-4 rounded-xl glass-input text-sm text-white placeholder-indigo-300/30 focus:outline-none resize-none"
@@ -542,17 +630,25 @@ export default function EditCoursePage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
+                  <label
+                    htmlFor="field-editpagetsx-4"
+                    className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2"
+                  >
                     Category
                   </label>
                   <select
-                    value={category ?? 'web-development'}
+                    id="field-editpagetsx-4"
+                    value={category ?? "web-development"}
                     onChange={(e) => setCategory(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl glass-input text-xs text-white focus:outline-none bg-[#0a0d20]"
                   >
                     <option value="web-development">Web Development</option>
-                    <option value="mobile-development">Mobile Development</option>
-                    <option value="ai-machine-learning">AI & Machine Learning</option>
+                    <option value="mobile-development">
+                      Mobile Development
+                    </option>
+                    <option value="ai-machine-learning">
+                      AI & Machine Learning
+                    </option>
                     <option value="data-science">Data Science</option>
                     <option value="cloud-devops">Cloud & DevOps</option>
                     <option value="cybersecurity">Cybersecurity</option>
@@ -560,11 +656,15 @@ export default function EditCoursePage() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
+                  <label
+                    htmlFor="field-editpagetsx-5"
+                    className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2"
+                  >
                     Difficulty Level
                   </label>
                   <select
-                    value={level ?? 'beginner'}
+                    id="field-editpagetsx-5"
+                    value={level ?? "beginner"}
                     onChange={(e) => setLevel(e.target.value)}
                     className="w-full px-4 py-3 rounded-xl glass-input text-xs text-white focus:outline-none bg-[#0a0d20]"
                   >
@@ -575,48 +675,28 @@ export default function EditCoursePage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
-                    Standard Price (INR ₹)
-                  </label>
-                  <input
-                    type="number"
-                    value={price ?? 0}
-                    onChange={(e) => setPrice(e.target.value)}
-                    placeholder="0 for Free"
-                    className="w-full px-4 py-3 rounded-xl glass-input text-sm text-white placeholder-indigo-300/30 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
-                    Discount Price (Optional INR ₹)
-                  </label>
-                  <input
-                    type="number"
-                    value={discountPrice ?? 0}
-                    onChange={(e) => setDiscountPrice(e.target.value)}
-                    placeholder="0 for none"
-                    className="w-full px-4 py-3 rounded-xl glass-input text-sm text-white placeholder-indigo-300/30 focus:outline-none"
-                  />
-                </div>
-              </div>
-
               <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
+                <label
+                  htmlFor="field-editpagetsx-6"
+                  className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2"
+                >
                   Thumbnail Image URL
                 </label>
                 <input
+                  id="field-editpagetsx-6"
                   type="text"
-                  value={thumbnail ?? ''}
+                  value={thumbnail ?? ""}
                   onChange={(e) => setThumbnail(e.target.value)}
                   placeholder="https://images.unsplash.com/... or Cloudinary URL"
                   className="w-full px-4 py-3 rounded-xl glass-input text-sm text-white placeholder-indigo-300/30 focus:outline-none"
                 />
                 {thumbnail && (
                   <div className="mt-3 w-48 h-28 rounded-xl overflow-hidden border border-indigo-500/20 bg-black">
-                    <img src={thumbnail} alt="Preview" className="w-full h-full object-cover" />
+                    <img
+                      src={thumbnail}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
                   </div>
                 )}
               </div>
@@ -625,7 +705,7 @@ export default function EditCoursePage() {
         )}
 
         {/* ── TAB 3: Outcomes & Prerequisites ─────────────────────── */}
-        {activeTab === 'outcomes' && (
+        {activeTab === "outcomes" && (
           <div className="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/20 space-y-6">
             {/* Learning Outcomes */}
             <div className="space-y-3">
@@ -639,9 +719,15 @@ export default function EditCoursePage() {
                   </span>
                   <input
                     type="text"
-                    value={outcome ?? ''}
-                    onChange={(e) => handleArrayChange(setLearningOutcomes, idx, e.target.value)}
-                    placeholder={`Outcome ${idx + 1}: e.g. Build production full-stack SaaS apps with Next.js and Stripe`}
+                    value={outcome ?? ""}
+                    onChange={(e) =>
+                      handleArrayChange(
+                        setLearningOutcomes,
+                        idx,
+                        e.target.value,
+                      )
+                    }
+                    placeholder={`Outcome ${idx + 1}: e.g. Build production full-stack SaaS apps with Next.js and MongoDB`}
                     className="flex-1 px-4 py-2.5 rounded-xl glass-input text-xs text-white placeholder-indigo-300/30 focus:outline-none"
                   />
                   <button
@@ -675,8 +761,10 @@ export default function EditCoursePage() {
                   </span>
                   <input
                     type="text"
-                    value={req ?? ''}
-                    onChange={(e) => handleArrayChange(setRequirements, idx, e.target.value)}
+                    value={req ?? ""}
+                    onChange={(e) =>
+                      handleArrayChange(setRequirements, idx, e.target.value)
+                    }
                     placeholder={`Requirement ${idx + 1}: e.g. Basic familiarity with HTML, CSS and JavaScript`}
                     className="flex-1 px-4 py-2.5 rounded-xl glass-input text-xs text-white placeholder-indigo-300/30 focus:outline-none"
                   />

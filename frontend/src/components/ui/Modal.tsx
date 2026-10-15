@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useRef } from 'react';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -26,26 +27,29 @@ export default function Modal({
   children,
   maxWidth = 'lg',
 }: ModalProps) {
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      document.body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [isOpen, onClose]);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose, isOpen);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+    >
       {/* Backdrop */}
       <div
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (
+            event.target === event.currentTarget &&
+            (event.key === 'Enter' || event.key === ' ')
+          ) {
+            event.preventDefault();
+            event.currentTarget.click();
+          }
+        }}
         className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
@@ -56,8 +60,11 @@ export default function Modal({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-indigo-500/20 bg-[#121735]">
-          <h3 className="text-lg font-bold text-white tracking-tight">{title}</h3>
+          <h3 className="text-lg font-bold text-white tracking-tight">
+            {title}
+          </h3>
           <button
+            aria-label="Close dialog"
             type="button"
             onClick={onClose}
             className="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 text-indigo-300 hover:text-white flex items-center justify-center transition-colors cursor-pointer"

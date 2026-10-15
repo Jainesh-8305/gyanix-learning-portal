@@ -1,94 +1,192 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import useSWR from 'swr';
+import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Users, ShieldCheck, ToggleLeft, ToggleRight } from 'lucide-react';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/useAuthStore';
-
-const fetcher = (url: string) => api.get(url).then(r => r.data);
-
-const ROLE_COLORS: Record<string, string> = {
-  student: 'text-indigo-400 bg-indigo-400/10 border-indigo-400/20',
-  instructor: 'text-teal-400 bg-teal-400/10 border-teal-400/20',
-  admin: 'text-pink-400 bg-pink-400/10 border-pink-400/20',
-};
-
-export default function AdminUsersPage() {
-  const { user, isAuthenticated } = useAuthStore();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!isAuthenticated) router.push('/login');
-    else if (user?.role !== 'admin') router.push('/dashboard/student');
-  }, [isAuthenticated, user, router]);
-
-  const { data, mutate, isLoading } = useSWR('/admin/users', fetcher);
-  const users = data?.data || [];
-
-  const handleToggle = async (userId: string, name: string) => {
+import { apiError } from '@/lib/errors';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
+import {
+  PageHeading,
+  Panel,
+  Badge,
+  EmptyState,
+  LoadingState,
+  ErrorState,
+  dateLabel,
+} from '@/components/workspace/ui';
+interface Account {
+  _id: string;
+  name: string;
+  email: string;
+  role: string;
+  isActive: boolean;
+  createdAt: string;
+}
+export default function UserManagement() {
+  const [search, setSearch] = useState(''),
+    [role, setRole] = useState(''),
+    [page, setPage] = useState(1),
+    [busy, setBusy] = useState('');
+  const settled = useDebouncedValue(search),
+    query = new URLSearchParams({
+      page: String(page),
+      limit: '20',
+      ...(role ? { role } : {}),
+      ...(settled ? { search: settled } : {}),
+    }).toString();
+  const { data, error, isLoading, mutate } = useSWR<{
+    data: Account[];
+    total: number;
+  }>('/admin/users?' + query);
+  async function toggle(user: Account) {
+    setBusy(user._id);
     try {
-      await api.put(`/admin/users/${userId}/toggle-status`);
-      toast.success(`${name}'s account status updated`);
-      mutate();
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to update status');
+      await api.put(`/admin/users/${user._id}/toggle-status`);
+      await mutate();
+      toast.success(
+        user.isActive ? 'Account deactivated' : 'Account activated',
+      );
+    } catch (e) {
+      toast.error(apiError(e, 'Could not change account status'));
+    } finally {
+      setBusy('');
     }
-  };
-
+  }
   return (
-    <div className="min-h-screen bg-[#05060f] relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="relative z-10 max-w-5xl mx-auto p-6">
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-teal-400 text-sm font-medium mb-2">
-            <ShieldCheck size={14} /> User management
-          </div>
-          <h1 className="text-2xl font-semibold text-white">All Users</h1>
-          <p className="text-indigo-200/50 mt-1">{users.length} registered users</p>
+    <>
+      <PageHeading
+        eyebrow="Administration"
+        title="User management"
+        description="Find accounts and manage access for students and instructors."
+      />
+      <Panel
+        title="Account directory"
+        action={<Badge>{data?.total || 0} accounts</Badge>}
+      >
+        <div className="ws-toolbar">
+          <label className="ws-field">
+            <span className="sr-only">Search users by name or email</span>
+            <span className="flex items-center gap-2">
+              <Search size={17} />
+              <input
+                className="ws-input"
+                maxLength={100}
+                value={search}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search name or email"
+              />
+            </span>
+          </label>
+          <label className="ws-field">
+            <span className="sr-only">Filter account role</span>
+            <select
+              className="ws-input"
+              value={role}
+              onChange={(e) => {
+                setRole(e.target.value);
+                setPage(1);
+              }}
+            >
+              <option value="">All roles</option>
+              <option value="student">Students</option>
+              <option value="instructor">Instructors</option>
+              <option value="admin">Administrators</option>
+            </select>
+          </label>
         </div>
-
         {isLoading ? (
-          <div className="space-y-3">
-            {[1,2,3].map(i => <div key={i} className="bg-[#0f1120]/60 border border-indigo-500/10 rounded-2xl h-16 animate-pulse" />)}
+          <LoadingState />
+        ) : error ? (
+          <ErrorState retry={() => void mutate()} />
+        ) : data?.data.length ? (
+          <div className="ws-table-wrap">
+            <table className="ws-table">
+              <caption className="sr-only">
+                Registered users and access controls
+              </caption>
+              <thead>
+                <tr>
+                  <th>Account</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Access</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.data.map((user) => (
+                  <tr key={user._id}>
+                    <td>
+                      <h3>{user.name}</h3>
+                      <p className="ws-small ws-muted">{user.email}</p>
+                    </td>
+                    <td>
+                      <Badge>{user.role}</Badge>
+                    </td>
+                    <td>
+                      <Badge tone={user.isActive ? 'success' : 'warning'}>
+                        {user.isActive ? 'Active' : 'Inactive'}
+                      </Badge>
+                    </td>
+                    <td>{dateLabel(user.createdAt)}</td>
+                    <td>
+                      {user.role === 'admin' ? (
+                        <span className="ws-small ws-muted">
+                          Protected administrator
+                        </span>
+                      ) : (
+                        <button
+                          className="ws-button ws-secondary"
+                          disabled={busy === user._id}
+                          onClick={() => void toggle(user)}
+                        >
+                          {busy === user._id
+                            ? 'Saving…'
+                            : user.isActive
+                              ? 'Deactivate'
+                              : 'Activate'}
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         ) : (
-          <div className="bg-[#0f1120]/80 backdrop-blur-xl border border-indigo-500/15 rounded-2xl overflow-hidden">
-            <div className="grid grid-cols-4 gap-4 px-5 py-3 border-b border-indigo-500/10 text-xs font-medium text-indigo-200/40 uppercase tracking-wide">
-              <span>Name</span>
-              <span>Email</span>
-              <span>Role</span>
-              <span>Status</span>
-            </div>
-            {users.map((u: any) => (
-              <div key={u._id} className="grid grid-cols-4 gap-4 px-5 py-4 border-b border-indigo-500/5 last:border-0 items-center hover:bg-white/2 transition">
-                <p className="text-sm font-medium text-white truncate">{u.name}</p>
-                <p className="text-sm text-indigo-200/50 truncate">{u.email}</p>
-                <span className={`text-xs font-medium px-2.5 py-1 rounded-full border w-fit capitalize ${ROLE_COLORS[u.role] || ROLE_COLORS.student}`}>
-                  {u.role}
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className={`text-xs ${u.isActive ? 'text-teal-400' : 'text-pink-400'}`}>
-                    {u.isActive ? 'Active' : 'Disabled'}
-                  </span>
-                  {u.role !== 'admin' && (
-                    <button
-                      onClick={() => handleToggle(u._id, u.name)}
-                      className={`transition ${u.isActive ? 'text-teal-400 hover:text-pink-400' : 'text-pink-400 hover:text-teal-400'}`}
-                      title={u.isActive ? 'Disable user' : 'Enable user'}
-                    >
-                      {u.isActive ? <ToggleRight size={20} /> : <ToggleLeft size={20} />}
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          <EmptyState
+            title="No matching accounts"
+            description="Try another name, email or role filter."
+          />
         )}
-      </div>
-    </div>
+        <div className="ws-toolbar mt-6 mb-0">
+          <span className="ws-small ws-muted">
+            Page {page} of {Math.max(1, Math.ceil((data?.total || 0) / 20))}
+          </span>
+          <div className="ws-actions">
+            <button
+              aria-label="Previous user page"
+              className="ws-button ws-secondary"
+              disabled={page === 1}
+              onClick={() => setPage(page - 1)}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              aria-label="Next user page"
+              className="ws-button ws-secondary"
+              disabled={page * 20 >= (data?.total || 0)}
+              onClick={() => setPage(page + 1)}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      </Panel>
+    </>
   );
 }

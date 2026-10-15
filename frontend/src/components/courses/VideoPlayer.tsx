@@ -1,266 +1,202 @@
 'use client';
-
-import { useState, useEffect, useRef } from 'react';
-import { Play, ExternalLink, CheckCircle2, Sparkles, ShieldCheck } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useParams } from 'next/navigation';
+import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
-
+interface Player {
+  getCurrentTime(): number;
+  getDuration(): number;
+  destroy(): void;
+}
+interface YouTubeAPI {
+  Player: new (
+    node: HTMLElement,
+    options: {
+      videoId: string;
+      playerVars: Record<string, number>;
+      events: { onStateChange: (event: { data: number }) => void };
+    },
+  ) => Player;
+}
+declare global {
+  interface Window {
+    YT?: YouTubeAPI;
+    onYouTubeIframeAPIReady?: () => void;
+  }
+}
+let apiReady: Promise<YouTubeAPI> | undefined;
+function youtubeAPI() {
+  if (window.YT?.Player) return Promise.resolve(window.YT);
+  if (!apiReady)
+    apiReady = new Promise((resolve, reject) => {
+      window.onYouTubeIframeAPIReady = () => {
+        if (window.YT) resolve(window.YT);
+      };
+      const script = document.createElement('script');
+      script.src = 'https://www.youtube.com/iframe_api';
+      script.onerror = () => {
+        apiReady = undefined;
+        reject(new Error('Video provider unavailable'));
+      };
+      document.body.appendChild(script);
+    });
+  return apiReady;
+}
 interface Props {
   videoUrl: string;
   lessonId: string;
   onComplete: (lessonId: string, watchTime: number) => void;
   title?: string;
 }
-
-function getYouTubeId(url: string): string | null {
-  if (!url) return null;
-  const patterns = [
-    /youtube\.com\/watch\?v=([^&]+)/,
-    /youtu\.be\/([^?]+)/,
-    /youtube\.com\/embed\/([^?]+)/,
-  ];
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match) return match[1];
-  }
-  return null;
-}
-
-export default function VideoPlayer({ videoUrl, lessonId, onComplete, title }: Props) {
-  const { user } = useAuthStore();
-  const isStudent = user?.role === 'student';
-
-  const [playedPercent, setPlayedPercent] = useState(0);
-  const [completed, setCompleted] = useState(false);
-  const [canMarkDone, setCanMarkDone] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
-  const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  const youtubeId = getYouTubeId(videoUrl);
-
-  // Reset completion state when lesson changes
+export default function VideoPlayer({
+  videoUrl,
+  lessonId,
+  onComplete,
+  title,
+}: Props) {
+  const params = useParams();
+  const student = useAuthStore((s) => s.user?.role === 'student');
+  const container = useRef<HTMLDivElement>(null),
+    player = useRef<Player | null>(null),
+    callback = useRef(onComplete),
+    heartbeatAt = useRef(0);
+  const [percent, setPercent] = useState(0),
+    [duration, setDuration] = useState(0),
+    [error, setError] = useState('');
   useEffect(() => {
-    setPlayedPercent(0);
-    setCompleted(false);
-    setCanMarkDone(false);
-    setIsLoaded(false);
-
-    if (pollIntervalRef.current) {
-      clearInterval(pollIntervalRef.current);
-      pollIntervalRef.current = null;
-    }
-  }, [lessonId]);
-
-  // Load YouTube IFrame API if video is YouTube
+    callback.current = onComplete;
+  }, [onComplete]);
+  const match = videoUrl.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([\w-]{11})/,
+  );
+  const youtubeId = match?.[1];
+  const beat = (force = false) => {
+    if (
+      !student ||
+      !params.id ||
+      (!force && Date.now() - heartbeatAt.current < 9000)
+    )
+      return;
+    heartbeatAt.current = Date.now();
+    void api.post(`/enrollments/${params.id}/watch`, { lessonId }).catch(() => {
+      /* Preview/unavailable enrollment must not fabricate progress. */
+    });
+  };
+  const beatRef = useRef(beat);
   useEffect(() => {
-    if (!youtubeId) return;
-
-    const playerId = `yt-player-${lessonId}`;
-
-    const initPlayer = () => {
-      if (!(window as any).YT || !(window as any).YT.Player) return;
-
-      // Clean up previous instance
-      if (playerRef.current && playerRef.current.destroy) {
-        try { playerRef.current.destroy(); } catch {}
-      }
-
-      playerRef.current = new (window as any).YT.Player(playerId, {
-        videoId: youtubeId,
-        playerVars: {
-          autoplay: 0,
-          controls: 1,
-          modestbranding: 1,
-          rel: 0,
-          enablejsapi: 1,
-        },
-        events: {
-          onReady: () => {
-            setIsLoaded(true);
-          },
-          onStateChange: (event: any) => {
-            const YT = (window as any).YT;
-            if (!YT) return;
-
-            // When video is playing, poll for progress
-            if (event.data === YT.PlayerState.PLAYING) {
-              if (!pollIntervalRef.current) {
-                pollIntervalRef.current = setInterval(() => {
-                  if (!playerRef.current || !playerRef.current.getCurrentTime) return;
-                  const currentTime = playerRef.current.getCurrentTime() || 0;
-                  const totalDuration = playerRef.current.getDuration() || 1;
-                  const pct = Math.min(100, Math.round((currentTime / totalDuration) * 100));
-
-                  setPlayedPercent(pct);
-
-                  if (pct >= 80) {
-                    setCanMarkDone(true);
-                  }
+    beatRef.current = beat;
+  });
+  useEffect(() => {
+    setPercent(0);
+    setDuration(0);
+    setError('');
+    heartbeatAt.current = 0;
+    if (!youtubeId || !container.current) return;
+    let disposed = false,
+      timer: ReturnType<typeof setInterval> | undefined;
+    const stop = () => {
+      if (timer) clearInterval(timer);
+      timer = undefined;
+    };
+    youtubeAPI()
+      .then((YT) => {
+        if (disposed || !container.current) return;
+        const node = document.createElement('div');
+        container.current.appendChild(node);
+        player.current = new YT.Player(node, {
+          videoId: youtubeId,
+          playerVars: { controls: 1, rel: 0 },
+          events: {
+            onStateChange: (event) => {
+              stop();
+              if (event.data === 1) {
+                beatRef.current();
+                timer = setInterval(() => {
+                  const d = player.current?.getDuration() || 0,
+                    time = player.current?.getCurrentTime() || 0;
+                  setDuration(d);
+                  setPercent(
+                    d ? Math.min(100, Math.round((time / d) * 100)) : 0,
+                  );
+                  beatRef.current();
                 }, 1000);
               }
-            } else if (event.data === YT.PlayerState.ENDED) {
-              setPlayedPercent(100);
-              setCanMarkDone(true);
-              if (isStudent && !completed) {
-                setCompleted(true);
-                const dur = playerRef.current?.getDuration() || 0;
-                onComplete(lessonId, Math.floor(dur));
+              if (event.data === 0) {
+                beatRef.current(true);
+                setPercent(100);
+                setDuration(player.current?.getDuration() || 0);
               }
-            } else {
-              if (pollIntervalRef.current && event.data === YT.PlayerState.PAUSED) {
-                clearInterval(pollIntervalRef.current);
-                pollIntervalRef.current = null;
-              }
-            }
+            },
           },
-        },
+        });
+      })
+      .catch(() => {
+        if (!disposed)
+          setError('Video provider unavailable. Try the original video link.');
       });
-    };
-
-    if (!(window as any).YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      document.body.appendChild(tag);
-      (window as any).onYouTubeIframeAPIReady = initPlayer;
-    } else {
-      initPlayer();
-    }
-
     return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
-      if (playerRef.current && playerRef.current.destroy) {
-        try { playerRef.current.destroy(); } catch {}
-      }
+      disposed = true;
+      stop();
+      player.current?.destroy();
+      player.current = null;
     };
-  }, [youtubeId, lessonId, isStudent, completed, onComplete]);
-
-  const handleManualComplete = () => {
-    if (!completed) {
-      setCompleted(true);
-      const dur = playerRef.current?.getDuration?.() || 0;
-      onComplete(lessonId, Math.floor(dur));
-    }
-  };
-
-  if (!videoUrl) {
-    return (
-      <div className="glass-card rounded-2xl aspect-video flex items-center justify-center border border-indigo-500/20">
-        <div className="text-center">
-          <Play className="w-10 h-10 text-indigo-400/30 mx-auto mb-3" />
-          <p className="text-indigo-200/50 text-sm font-medium">No video attached to this lecture</p>
-        </div>
-      </div>
-    );
-  }
-
+  }, [youtubeId, lessonId]);
   return (
-    <div className="glass-card rounded-3xl overflow-hidden shadow-2xl border border-indigo-500/25 bg-[#05060f]">
-      {/* Video Screen Container */}
-      <div className="relative aspect-video bg-black overflow-hidden flex items-center justify-center" ref={containerRef}>
-        {youtubeId ? (
-          <div className="w-full h-full">
-            <div id={`yt-player-${lessonId}`} className="w-full h-full" />
-          </div>
-        ) : (
-          <video
-            controls
-            className="w-full h-full"
-            src={videoUrl}
-            onTimeUpdate={(e) => {
-              const video = e.currentTarget;
-              if (video.duration > 0) {
-                const pct = Math.min(100, Math.round((video.currentTime / video.duration) * 100));
-                setPlayedPercent(pct);
-                if (pct >= 80) setCanMarkDone(true);
-              }
-            }}
-            onEnded={(e) => {
-              setPlayedPercent(100);
-              setCanMarkDone(true);
-              if (isStudent && !completed) {
-                setCompleted(true);
-                onComplete(lessonId, Math.floor(e.currentTarget.duration));
-              }
-            }}
-          />
-        )}
-      </div>
-
-      {/* Control & Live Completion Bar */}
-      <div className="bg-[#0a0d20] px-5 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-indigo-500/20">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse shrink-0" />
-          <div className="min-w-0">
-            <p className="text-xs text-white font-semibold truncate max-w-xs sm:max-w-md">
-              {title || 'Lecture Stream'}
-            </p>
-            <p className="text-[11px] text-indigo-300/50 mt-0.5">
-              Progress: <span className="text-teal-300 font-semibold">{playedPercent}%</span> watched
-            </p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
-          {completed ? (
-            <div className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-teal-500/15 border border-teal-500/30 text-teal-300 text-xs font-bold shadow-lg shadow-teal-500/10">
-              <CheckCircle2 className="w-4 h-4 text-teal-400" />
-              <span>Lecture Completed ✓</span>
-            </div>
-          ) : isStudent ? (
-            <button
-              type="button"
-              onClick={handleManualComplete}
-              disabled={!canMarkDone}
-              title={
-                canMarkDone
-                  ? 'Click to complete lecture'
-                  : 'Watch at least 80% or finish the video to complete'
-              }
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-semibold transition cursor-pointer ${
-                canMarkDone
-                  ? 'glow-btn-teal text-white shadow-lg shadow-teal-500/20'
-                  : 'bg-white/5 text-indigo-300/40 border border-indigo-500/15 cursor-not-allowed opacity-75'
-              }`}
-            >
-              {canMarkDone ? (
-                <>
-                  <Sparkles className="w-4 h-4 text-teal-300" />
-                  <span>Mark Complete</span>
-                </>
-              ) : (
-                <>
-                  <div className="w-3.5 h-3.5 border-2 border-indigo-400/20 border-t-indigo-400 rounded-full animate-spin" />
-                  <span>
-                    {playedPercent < 80
-                      ? `Watch ${80 - playedPercent}% more to finish`
-                      : 'Unlocking completion...'}
-                  </span>
-                </>
-              )}
-            </button>
-          ) : (
-            <span className="flex items-center gap-1.5 text-xs text-indigo-300/50 border border-indigo-500/20 px-3 py-1.5 rounded-lg bg-white/3">
-              <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-              <span>Instructor Preview</span>
-            </span>
-          )}
-
-          <a
-            href={videoUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-indigo-300/60 hover:text-white transition-colors"
-            title="Open in new tab"
+    <section className="glass-card rounded-2xl overflow-hidden border border-indigo-500/25 text-white">
+      {youtubeId ? (
+        <div
+          ref={container}
+          className="aspect-video w-full bg-black [&_iframe]:w-full [&_iframe]:h-full"
+        />
+      ) : (
+        <video
+          key={lessonId}
+          onPlay={() => beat(true)}
+          onEnded={() => {
+            beat(true);
+            setPercent(100);
+          }}
+          controls
+          src={videoUrl}
+          className="w-full aspect-video bg-black"
+          onTimeUpdate={(e) => {
+            const video = e.currentTarget;
+            setDuration(video.duration || 0);
+            setPercent(
+              video.duration
+                ? Math.round((video.currentTime / video.duration) * 100)
+                : 0,
+            );
+            if (!video.paused) beat();
+          }}
+        />
+      )}
+      <div className="p-4 space-y-3">
+        <h2 className="font-semibold">{title || 'Lesson video'}</h2>
+        <p>{percent}% watched</p>
+        {error && <p role="alert">{error}</p>}
+        {student && (
+          <button
+            disabled={percent < 80 || !duration}
+            onClick={() => callback.current(lessonId, Math.floor(duration))}
+            className="px-4 py-2 bg-teal-800 rounded-lg disabled:opacity-50"
           >
-            <ExternalLink className="w-4 h-4" />
-          </a>
-        </div>
+            Mark Complete
+          </button>
+        )}
+        <a
+          href={videoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block text-teal-300"
+        >
+          Open original video
+        </a>
+        <p className="text-xs text-indigo-200">
+          Completion requires server-recorded watch time. Seeking alone does not
+          complete a lesson.
+        </p>
       </div>
-    </div>
+    </section>
   );
 }

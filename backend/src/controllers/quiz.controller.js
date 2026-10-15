@@ -1,214 +1,102 @@
-// backend/src/controllers/quiz.controller.js
-//
-// Quiz CRUD — Create, Read, Submit attempts.
-// Quizzes are linked to a Course (and optionally a Lesson).
-// Instructors create/manage quizzes; students submit attempts.
-
 const Quiz = require('../models/Quiz');
+const Course = require('../models/Course');
 const Enrollment = require('../models/Enrollment');
-
-// ─── @POST /api/quizzes ───────────────────────────────────────
-// Instructor creates a quiz for their course
-const createQuiz = async (req, res, next) => {
+const assessment = require('../services/assessment.service');
+const { fail, owned } = require('../utils/http');
+const wrap = (fn) => async (req, res, next) => {
   try {
-    const { title, courseId, lessonId, questions, timeLimit, passingScore, maxAttempts, isAdaptive, isRandomized } = req.body;
-
-    const quiz = await Quiz.create({
-      title,
-      course: courseId,
-      lesson: lessonId || undefined,
-      instructor: req.user._id,
-      questions: questions || [],
-      timeLimit: timeLimit ?? 30,
-      passingScore: passingScore ?? 70,
-      maxAttempts: maxAttempts ?? 3,
-      isAdaptive: isAdaptive ?? false,
-      isRandomized: isRandomized ?? true,
-    });
-
-    res.status(201).json({ success: true, data: quiz });
-  } catch (error) {
-    next(error);
+    await fn(req, res);
+  } catch (e) {
+    next(e);
   }
 };
-
-// ─── @GET /api/quizzes/course/:courseId ───────────────────────
-// Get all quizzes for a course (enrolled students and instructor)
-const getQuizzesByCourse = async (req, res, next) => {
-  try {
-    const { courseId } = req.params;
-
-    // Verify the requester is enrolled or is the instructor
-    if (req.user.role === 'student') {
-      const enrollment = await Enrollment.findOne({
-        student: req.user._id,
-        course: courseId,
-      });
-      if (!enrollment) {
-        return res.status(403).json({
-          success: false,
-          message: 'You must be enrolled in this course to access its quizzes.',
-        });
-      }
-    }
-
-    // Exclude correct answers for students (prevent cheating)
-    const projection = req.user.role === 'student'
-      ? '-questions.correctAnswer -questions.explanation'
-      : '';
-
-    const quizzes = await Quiz.find({ course: courseId }).select(projection);
-    res.json({ success: true, data: quizzes });
-  } catch (error) {
-    next(error);
-  }
+const owner = async (id, user) => {
+  const c = await Course.findById(id);
+  if (!c) throw fail(404, 'Course not found');
+  if (!owned(c, user)) throw fail(403, 'Course owner required');
+  return c;
 };
-
-// ─── @GET /api/quizzes/:id ────────────────────────────────────
-// Get a single quiz (strips answers for students)
-const getQuiz = async (req, res, next) => {
-  try {
-    const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
-
-    if (req.user.role === 'student') {
-      // Verify enrollment
-      const enrollment = await Enrollment.findOne({
-        student: req.user._id,
-        course: quiz.course,
-      });
-      if (!enrollment) {
-        return res.status(403).json({ success: false, message: 'Enrollment required' });
-      }
-
-      // Strip correct answers and explanations before sending
-      const quizObj = quiz.toObject();
-      quizObj.questions = quizObj.questions.map(q => {
-        const { correctAnswer, explanation, ...safe } = q;
-        void correctAnswer; void explanation; // suppress linter unused warnings
-        return safe;
-      });
-      return res.json({ success: true, data: quizObj });
-    }
-
-    res.json({ success: true, data: quiz });
-  } catch (error) {
-    next(error);
-  }
+const createQuiz = wrap(async (req, res) => {
+  const c = await owner(req.body.courseId, req.user);
+  const { title, questions, timeLimit, passingScore, maxAttempts } = req.body;
+  if (!Array.isArray(questions) || !questions.length || questions.length > 30)
+    throw fail(400, 'Provide 1-30 questions');
+  const data = await Quiz.create({
+    title,
+    course: c._id,
+    instructor: c.instructor,
+    questions,
+    timeLimit,
+    passingScore,
+    maxAttempts,
+  });
+  res.status(201).json({ success: true, data });
+});
+const getQuizzesByCourse = wrap(async (req, res) => {
+  const c = await Course.findById(req.params.courseId);
+  if (!c) throw fail(404, 'Course not found');
+  if (
+    !owned(c, req.user) &&
+    !(
+      req.user.role === 'student' &&
+      (await Enrollment.exists({ student: req.user._id, course: c._id }))
+    )
+  )
+    throw fail(403, 'Enrollment or course ownership required');
+  const data = await Quiz.find({
+    course: c._id,
+    isCertification: false,
+  }).select('-questions');
+  res.json({ success: true, data });
+});
+const getQuiz = wrap(async (req, res) => {
+  const q = await Quiz.findById(req.params.id);
+  if (!q) throw fail(404, 'Quiz not found');
+  const { course } = await assessment.access(q, req.user);
+  const data = owned(course, req.user)
+    ? q
+    : await assessment.start(q, req.user);
+  res.json({ success: true, data });
+});
+const updateQuiz = wrap(async (req, res) => {
+  const q = await Quiz.findById(req.params.id);
+  if (!q) throw fail(404, 'Quiz not found');
+  await owner(q.course, req.user);
+  if (await require('../models/QuizAttempt').exists({ quiz: q._id }))
+    throw fail(409, 'Cannot change a quiz after attempts have started');
+  for (const k of [
+    'title',
+    'questions',
+    'timeLimit',
+    'passingScore',
+    'maxAttempts',
+  ])
+    if (req.body[k] !== undefined) q[k] = req.body[k];
+  await q.save();
+  res.json({ success: true, data: q });
+});
+const deleteQuiz = wrap(async (req, res) => {
+  const q = await Quiz.findById(req.params.id);
+  if (!q) throw fail(404, 'Quiz not found');
+  await owner(q.course, req.user);
+  if (await require('../models/QuizAttempt').exists({ quiz: q._id }))
+    throw fail(409, 'Cannot delete a quiz with attempt records');
+  await q.deleteOne();
+  res.json({ success: true });
+});
+const submitQuiz = wrap(async (req, res) => {
+  const q = await Quiz.findById(req.params.id);
+  if (!q) throw fail(404, 'Quiz not found');
+  res.json({
+    success: true,
+    data: await assessment.submit(q, req.user, req.body),
+  });
+});
+module.exports = {
+  createQuiz,
+  getQuizzesByCourse,
+  getQuiz,
+  updateQuiz,
+  deleteQuiz,
+  submitQuiz,
 };
-
-// ─── @PUT /api/quizzes/:id ────────────────────────────────────
-// Instructor updates a quiz
-const updateQuiz = async (req, res, next) => {
-  try {
-    const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
-
-    if (quiz.instructor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-
-    const updated = await Quiz.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    res.json({ success: true, data: updated });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ─── @DELETE /api/quizzes/:id ─────────────────────────────────
-const deleteQuiz = async (req, res, next) => {
-  try {
-    const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
-
-    if (quiz.instructor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-
-    await quiz.deleteOne();
-    res.json({ success: true, message: 'Quiz deleted' });
-  } catch (error) {
-    next(error);
-  }
-};
-
-// ─── @POST /api/quizzes/:id/submit ───────────────────────────
-// Student submits answers. Server scores multiple-choice; short-answer
-// questions are marked for instructor review.
-const submitQuiz = async (req, res, next) => {
-  try {
-    const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
-
-    // Verify enrollment
-    const enrollment = await Enrollment.findOne({
-      student: req.user._id,
-      course: quiz.course,
-    });
-    if (!enrollment) {
-      return res.status(403).json({ success: false, message: 'Enrollment required to submit quiz' });
-    }
-
-    const { answers } = req.body; // { [questionId]: "student answer string" }
-
-    // Score the attempt
-    let earned = 0;
-    let possible = 0;
-    const results = quiz.questions.map(q => {
-      const studentAnswer = answers[q._id.toString()];
-      possible += q.points || 1;
-
-      if (q.type === 'multiple-choice' || q.type === 'true-false') {
-        const correct = studentAnswer?.trim().toLowerCase() === q.correctAnswer?.trim().toLowerCase();
-        if (correct) earned += q.points || 1;
-        return {
-          questionId: q._id,
-          question: q.question,
-          studentAnswer,
-          correctAnswer: q.correctAnswer,
-          explanation: q.explanation,
-          isCorrect: correct,
-          pointsEarned: correct ? (q.points || 1) : 0,
-          pointsPossible: q.points || 1,
-        };
-      }
-
-      // Short-answer / coding — mark for human/AI review
-      return {
-        questionId: q._id,
-        question: q.question,
-        studentAnswer,
-        correctAnswer: null, // Don't expose for open-ended
-        isCorrect: null,     // Pending grading
-        pointsEarned: null,
-        pointsPossible: q.points || 1,
-        pendingReview: true,
-      };
-    });
-
-    const percentage = possible > 0 ? Math.round((earned / possible) * 100) : 0;
-    const passed = percentage >= (quiz.passingScore || 70);
-
-    res.json({
-      success: true,
-      data: {
-        quizId: quiz._id,
-        quizTitle: quiz.title,
-        score: earned,
-        possible,
-        percentage,
-        passed,
-        passingScore: quiz.passingScore,
-        results,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-module.exports = { createQuiz, getQuizzesByCourse, getQuiz, updateQuiz, deleteQuiz, submitQuiz };

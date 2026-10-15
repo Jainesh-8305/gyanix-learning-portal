@@ -23,12 +23,18 @@ const cloudinary = require('../config/cloudinary');
  * @param {Date}   opts.completedAt       - Completion date
  * @returns {Promise<string>}             - Cloudinary secure_url of the PDF
  */
-const generateCertificate = ({ studentName, courseTitle, instructorName, certificateId, completedAt }) => {
+const generateCertificate = ({
+  studentName,
+  courseTitle,
+  instructorName,
+  certificateId,
+  completedAt,
+}) => {
   return new Promise((resolve, reject) => {
     try {
       // ── Create PDF in memory ────────────────────────────────
       const doc = new PDFDocument({
-        size: [842, 595],  // A4 landscape (width x height in points)
+        size: [842, 595], // A4 landscape (width x height in points)
         margin: 0,
         info: {
           Title: `Certificate of Completion — ${courseTitle}`,
@@ -48,12 +54,14 @@ const generateCertificate = ({ studentName, courseTitle, instructorName, certifi
       const defaultCertUrl = `https://res.cloudinary.com/ai-lms/certificates/cert_${certificateId}.pdf`;
 
       const buffers = [];
-      doc.on('data', chunk => buffers.push(chunk));
+      doc.on('data', (chunk) => buffers.push(chunk));
 
       doc.on('end', async () => {
         try {
           if (!hasCloudinary) {
-            console.log(`[Certificate] Cloudinary not configured for direct upload, using verified asset URL.`);
+            console.log(
+              '[Certificate] Cloudinary not configured for direct upload, using verified asset URL.',
+            );
             return resolve(defaultCertUrl);
           }
 
@@ -70,22 +78,31 @@ const generateCertificate = ({ studentName, courseTitle, instructorName, certifi
             },
             (error, result) => {
               if (error || !result?.secure_url) {
-                console.warn('[Certificate] Cloudinary upload stream error, falling back:', error?.message);
+                console.warn(
+                  '[Certificate] Cloudinary upload stream error, falling back:',
+                  error?.message,
+                );
                 return resolve(defaultCertUrl);
               }
               resolve(result.secure_url);
-            }
+            },
           );
 
           uploadStream.end(pdfBuffer);
         } catch (uploadErr) {
-          console.warn('[Certificate] Upload exception, falling back:', uploadErr.message);
+          console.warn(
+            '[Certificate] Upload exception, falling back:',
+            uploadErr.message,
+          );
           resolve(defaultCertUrl);
         }
       });
 
       doc.on('error', (streamErr) => {
-        console.warn('[Certificate] PDFKit document stream error:', streamErr.message);
+        console.warn(
+          '[Certificate] PDFKit document stream error:',
+          streamErr.message,
+        );
         resolve(defaultCertUrl);
       });
 
@@ -104,13 +121,15 @@ const generateCertificate = ({ studentName, courseTitle, instructorName, certifi
       doc.opacity(1);
 
       // Outer border
-      doc.rect(20, 20, W - 40, H - 40)
+      doc
+        .rect(20, 20, W - 40, H - 40)
         .lineWidth(1.5)
         .strokeColor('#6366f1')
         .stroke();
 
       // Inner border (decorative)
-      doc.rect(28, 28, W - 56, H - 56)
+      doc
+        .rect(28, 28, W - 56, H - 56)
         .lineWidth(0.5)
         .strokeColor('#14b8a6')
         .opacity(0.4)
@@ -118,24 +137,38 @@ const generateCertificate = ({ studentName, courseTitle, instructorName, certifi
       doc.opacity(1);
 
       // ── Logo / Icon area ─────────────────────────────────────
-      doc.fontSize(36).text('🚀', midX - 20, 55, { width: 40, align: 'center' });
+      doc
+        .fontSize(36)
+        .text('🚀', midX - 20, 55, { width: 40, align: 'center' });
 
       // ── Header ───────────────────────────────────────────────
       doc
         .font('Helvetica')
         .fontSize(11)
         .fillColor('#14b8a6')
-        .text('AI-LMS', midX - 30, 102, { width: 60, align: 'center', characterSpacing: 4 });
+        .text('AI-LMS', midX - 30, 102, {
+          width: 60,
+          align: 'center',
+          characterSpacing: 4,
+        });
 
       doc
         .fontSize(9)
         .fillColor('#6366f1')
-        .text('CERTIFICATE OF COMPLETION', midX - 100, 122, { width: 200, align: 'center', characterSpacing: 2 });
+        .text('CERTIFICATE OF COMPLETION', midX - 100, 122, {
+          width: 200,
+          align: 'center',
+          characterSpacing: 2,
+        });
 
       // ── Divider ───────────────────────────────────────────────
       doc
-        .moveTo(120, 148).lineTo(W - 120, 148)
-        .lineWidth(0.5).strokeColor('#6366f1').opacity(0.4).stroke();
+        .moveTo(120, 148)
+        .lineTo(W - 120, 148)
+        .lineWidth(0.5)
+        .strokeColor('#6366f1')
+        .opacity(0.4)
+        .stroke();
       doc.opacity(1);
 
       // ── "This certifies that" text ────────────────────────────
@@ -143,7 +176,10 @@ const generateCertificate = ({ studentName, courseTitle, instructorName, certifi
         .font('Helvetica')
         .fontSize(12)
         .fillColor('#9094c2')
-        .text('This certifies that', midX - 100, 165, { width: 200, align: 'center' });
+        .text('This certifies that', midX - 100, 165, {
+          width: 200,
+          align: 'center',
+        });
 
       // ── Student Name ──────────────────────────────────────────
       doc
@@ -157,7 +193,10 @@ const generateCertificate = ({ studentName, courseTitle, instructorName, certifi
         .font('Helvetica')
         .fontSize(12)
         .fillColor('#9094c2')
-        .text('has successfully completed', midX - 120, 238, { width: 240, align: 'center' });
+        .text('has successfully completed', midX - 120, 238, {
+          width: 240,
+          align: 'center',
+        });
 
       // ── Course Title ──────────────────────────────────────────
       doc
@@ -168,13 +207,19 @@ const generateCertificate = ({ studentName, courseTitle, instructorName, certifi
 
       // ── Divider ───────────────────────────────────────────────
       doc
-        .moveTo(180, 308).lineTo(W - 180, 308)
-        .lineWidth(0.5).strokeColor('#14b8a6').opacity(0.3).stroke();
+        .moveTo(180, 308)
+        .lineTo(W - 180, 308)
+        .lineWidth(0.5)
+        .strokeColor('#14b8a6')
+        .opacity(0.3)
+        .stroke();
       doc.opacity(1);
 
       // ── Footer Row: Date | Instructor | Cert ID ───────────────
       const dateStr = new Date(completedAt).toLocaleDateString('en-US', {
-        year: 'numeric', month: 'long', day: 'numeric',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
       });
 
       // Left: Completion date
@@ -218,9 +263,15 @@ const generateCertificate = ({ studentName, courseTitle, instructorName, certifi
         .font('Helvetica')
         .fontSize(8)
         .fillColor('#4a4e72')
-        .text('AI-LMS — Learn smarter with AI | Verify at ai-lms.com/verify', midX - 150, 410, {
-          width: 300, align: 'center',
-        });
+        .text(
+          'AI-LMS — Learn smarter with AI | Verify at ai-lms.com/verify',
+          midX - 150,
+          410,
+          {
+            width: 300,
+            align: 'center',
+          },
+        );
 
       doc.end();
     } catch (err) {

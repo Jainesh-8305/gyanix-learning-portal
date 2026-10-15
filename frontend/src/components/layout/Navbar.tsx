@@ -4,16 +4,26 @@ import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import {
-  Rocket, BookOpen, LayoutDashboard, LogOut,
-  Menu, X, User, ChevronDown, Settings, Sparkles, HelpCircle,
+  Rocket,
+  BookOpen,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  X,
+  User,
+  ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import { useAuthStore } from '@/store/useAuthStore';
 import toast from 'react-hot-toast';
-import PlatformGuideModal from '@/components/guide/PlatformGuideModal';
+import dynamic from 'next/dynamic';
+const PlatformGuideModal = dynamic(
+  () => import('@/components/guide/PlatformGuideModal'),
+);
 
 const roleBadgeColor: Record<string, string> = {
   instructor: 'bg-amber-500/15 text-amber-300 border-amber-400/30',
-  student:    'bg-teal-500/15 text-teal-300 border-teal-400/30',
+  student: 'bg-teal-500/15 text-teal-300 border-teal-400/30',
 };
 
 export default function Navbar() {
@@ -34,17 +44,26 @@ export default function Navbar() {
   };
 
   const dashboardPath =
-    user?.role === 'instructor' ? '/dashboard/instructor' :
-    '/dashboard/student';
+    user?.role === 'admin'
+      ? '/dashboard/admin'
+      : user?.role === 'instructor'
+        ? '/dashboard/instructor'
+        : '/dashboard/student';
 
   const navLinks = [
-    ...(isAuthenticated ? [{ href: dashboardPath, label: 'Dashboard', icon: LayoutDashboard }] : []),
+    { href: '/courses', label: 'Browse courses', icon: BookOpen },
+    ...(isAuthenticated
+      ? [{ href: dashboardPath, label: 'Dashboard', icon: LayoutDashboard }]
+      : []),
   ];
 
   // Close dropdown on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target as Node)
+      ) {
         setDropdownOpen(false);
       }
     };
@@ -64,7 +83,6 @@ export default function Navbar() {
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#05060f] border-b border-indigo-500/20 shadow-lg shadow-black/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-
         {/* ── Logo ──────────────────────────────────────────── */}
         <Link href="/" className="flex items-center gap-2.5 group">
           <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-teal-400 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:shadow-indigo-500/50 transition-shadow">
@@ -72,9 +90,12 @@ export default function Navbar() {
           </div>
           <div className="flex flex-col">
             <span className="font-extrabold text-white text-base tracking-tight leading-none group-hover:text-teal-300 transition-colors">
-              Gyanix<span className="text-teal-400 font-normal ml-1">Academy</span>
+              Gyanix
+              <span className="text-teal-400 font-normal ml-1">Academy</span>
             </span>
-            <span className="text-[9px] uppercase tracking-[2px] text-indigo-300/60 font-semibold">Learning Portal</span>
+            <span className="text-[9px] uppercase tracking-[2px] text-indigo-300/60 font-semibold">
+              Learning Portal
+            </span>
           </div>
         </Link>
 
@@ -92,7 +113,10 @@ export default function Navbar() {
                     : 'text-indigo-200 hover:text-white hover:bg-white/5 border border-transparent'
                 }`}
               >
-                <Icon size={16} className={active ? 'text-teal-400' : 'text-indigo-300'} />
+                <Icon
+                  size={16}
+                  className={active ? 'text-teal-400' : 'text-indigo-300'}
+                />
                 {label}
                 {active && (
                   <span className="absolute bottom-0 left-1/2 -translate-x-1/2 w-6 h-0.5 bg-gradient-to-r from-indigo-400 to-teal-400 rounded-full" />
@@ -107,7 +131,10 @@ export default function Navbar() {
             onClick={() => setShowGuideModal(true)}
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 border border-teal-400/35 text-xs font-bold text-teal-300 hover:text-white transition cursor-pointer shadow-sm group"
           >
-            <Sparkles size={14} className="text-teal-400 group-hover:rotate-12 transition-transform" />
+            <Sparkles
+              size={14}
+              className="text-teal-400 group-hover:rotate-12 transition-transform"
+            />
             <span>How Gyanix Works</span>
             <span className="px-1.5 py-0.5 rounded-md bg-teal-400/20 text-[10px] text-teal-200 font-extrabold uppercase tracking-wider">
               Guide
@@ -128,11 +155,18 @@ export default function Navbar() {
                 <div className="w-6 h-6 bg-gradient-to-br from-indigo-500 to-teal-400 rounded-full flex items-center justify-center text-xs font-bold text-[#05060f]">
                   {user?.name?.charAt(0).toUpperCase()}
                 </div>
-                <span className="text-sm text-white font-semibold">{user?.name?.split(' ')[0]}</span>
-                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${roleBadgeColor[user?.role || 'student']}`}>
+                <span className="text-sm text-white font-semibold">
+                  {user?.name?.split(' ')[0]}
+                </span>
+                <span
+                  className={`text-[10px] font-bold px-2 py-0.5 rounded-full border uppercase tracking-wider ${roleBadgeColor[user?.role || 'student']}`}
+                >
                   {user?.role}
                 </span>
-                <ChevronDown size={14} className={`text-indigo-300/60 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown
+                  size={14}
+                  className={`text-indigo-300/60 transition-transform duration-200 ${dropdownOpen ? 'rotate-180' : ''}`}
+                />
               </button>
 
               {/* Solid High-Contrast Dropdown */}
@@ -140,8 +174,12 @@ export default function Navbar() {
                 <div className="absolute right-0 top-full mt-2.5 w-60 bg-[#0e1226] rounded-2xl shadow-2xl shadow-black/90 border border-indigo-500/30 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-150">
                   {/* User info header */}
                   <div className="px-4 py-3.5 bg-[#141936] border-b border-indigo-500/20">
-                    <p className="text-white text-sm font-semibold truncate">{user?.name}</p>
-                    <p className="text-indigo-200/60 text-xs truncate mt-0.5">{user?.email}</p>
+                    <p className="text-white text-sm font-semibold truncate">
+                      {user?.name}
+                    </p>
+                    <p className="text-indigo-200/60 text-xs truncate mt-0.5">
+                      {user?.email}
+                    </p>
                   </div>
 
                   {/* Nav Links */}

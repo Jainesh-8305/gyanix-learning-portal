@@ -28,48 +28,13 @@ interface UpcomingTimelineCardProps {
   className?: string;
 }
 
-const defaultEvents: TimelineEvent[] = [
-  {
-    id: 'evt-1',
-    title: 'Web Development',
-    subtitle: 'Live Class',
-    time: '10:00 AM - 11:00 AM',
-    type: 'live',
-    link: '/courses',
-  },
-  {
-    id: 'evt-2',
-    title: 'Machine Learning',
-    subtitle: 'Lecture',
-    time: '02:00 PM - 03:00 PM',
-    type: 'lecture',
-    link: '/courses',
-  },
-  {
-    id: 'evt-3',
-    title: 'Assignment Submission',
-    subtitle: 'Faculty Module Assessment',
-    tag: 'Due Soon',
-    tagColor: 'text-amber-300 bg-amber-500/20 border-amber-500/40',
-    time: 'Tomorrow, 11:59 PM',
-    type: 'assignment',
-    link: '/dashboard/student',
-  },
-  {
-    id: 'evt-4',
-    title: 'Quiz - React Basics',
-    subtitle: 'Interactive Recall Check',
-    time: '15 Oct, 10:00 AM',
-    type: 'quiz',
-    link: '/dashboard/student/revision-quiz',
-  },
-];
-
 export default function UpcomingTimelineCard({
-  events = defaultEvents,
+  events = [],
   className = '',
 }: UpcomingTimelineCardProps) {
-  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(
+    null,
+  );
 
   const getTypeIcon = (type: TimelineEvent['type']) => {
     switch (type) {
@@ -127,6 +92,17 @@ export default function UpcomingTimelineCard({
 
         {events.slice(0, 4).map((event) => (
           <div
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (
+                event.target === event.currentTarget &&
+                (event.key === 'Enter' || event.key === ' ')
+              ) {
+                event.preventDefault();
+                event.currentTarget.click();
+              }
+            }}
             key={event.id}
             onClick={() => setSelectedEvent(event)}
             className="relative flex items-start gap-2.5 group cursor-pointer"
@@ -137,7 +113,7 @@ export default function UpcomingTimelineCard({
             {/* Event Icon Tile */}
             <div
               className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl flex items-center justify-center border shadow-sm shrink-0 transition-transform group-hover:scale-105 ${getTypeStyle(
-                event.type
+                event.type,
               )}`}
             >
               {getTypeIcon(event.type)}
@@ -172,8 +148,12 @@ export default function UpcomingTimelineCard({
       {selectedEvent && (
         <div className="p-2.5 rounded-xl bg-white/5 border border-cyan-400/30 flex items-center justify-between gap-2 animate-in fade-in duration-150">
           <div className="space-y-0.5 min-w-0">
-            <p className="text-[11px] font-bold text-white truncate">{selectedEvent.title}</p>
-            <p className="text-[10px] text-indigo-200/70">{selectedEvent.time}</p>
+            <p className="text-[11px] font-bold text-white truncate">
+              {selectedEvent.title}
+            </p>
+            <p className="text-[10px] text-indigo-200/70">
+              {selectedEvent.time}
+            </p>
           </div>
           <Link
             href={selectedEvent.link}

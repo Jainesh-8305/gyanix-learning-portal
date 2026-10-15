@@ -1,6 +1,13 @@
 // backend/src/routes/quiz.routes.js
 const express = require('express');
 const router = express.Router();
+router.param('id', (req, res, next) =>
+  require('../utils/http').objectIds(req, res, next),
+);
+router.param('courseId', (req, res, next) =>
+  require('../utils/http').objectIds(req, res, next),
+);
+
 const { protect } = require('../middleware/auth');
 const { isInstructor } = require('../middleware/roles');
 const {

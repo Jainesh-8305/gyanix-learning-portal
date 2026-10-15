@@ -13,9 +13,7 @@ import {
   Save,
   ExternalLink,
   BookOpen,
-  Globe,
   Share2,
-  Link2,
 } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/api';
@@ -44,7 +42,9 @@ export default function ProfilePage() {
           const parsed = JSON.parse(stored);
           if (parsed?.state?.token) return;
         }
-      } catch (e) {}
+      } catch {
+        /* Invalid cached browser state is ignored; server authentication remains authoritative. */
+      }
     }
     if (!isAuthenticated) router.push('/login');
   }, [isAuthenticated, router]);
@@ -107,9 +107,12 @@ export default function ProfilePage() {
               <ShieldCheck className="w-4 h-4" />
               <span>User Identity & Social Credentials</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">Personal Profile Studio</h1>
+            <h1 className="text-3xl font-extrabold text-white tracking-tight">
+              Personal Profile Studio
+            </h1>
             <p className="text-xs sm:text-sm text-indigo-200/60 mt-1">
-              Customize your certificate recipient name, professional links, and showcase verified credentials.
+              Customize your certificate recipient name, professional links, and
+              showcase verified credentials.
             </p>
           </div>
 
@@ -126,23 +129,30 @@ export default function ProfilePage() {
         {/* Profile Card & Avatar */}
         <div className="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/25 flex flex-col sm:flex-row items-center gap-6">
           <div className="relative">
-            <AstroMascot role={profileData?.role as any} className="w-24 h-24 sm:w-28 sm:h-28" />
+            <AstroMascot
+              role={profileData?.role as any}
+              className="w-24 h-24 sm:w-28 sm:h-28"
+            />
           </div>
 
           <div className="space-y-1.5 text-center sm:text-left flex-1">
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
-              <h2 className="text-2xl font-bold text-white">{name || 'Scholar'}</h2>
+              <h2 className="text-2xl font-bold text-white">
+                {name || 'Scholar'}
+              </h2>
               <span className="px-2.5 py-0.5 rounded-full bg-teal-500/15 border border-teal-500/30 text-teal-300 text-[10px] font-extrabold uppercase tracking-wider">
                 {profileData?.role}
               </span>
             </div>
             <p className="text-xs text-indigo-200/60">{profileData?.email}</p>
-            
+
             {/* Role-Specific Badge Status */}
             {profileData?.role === 'admin' ? (
               <p className="text-xs text-teal-400 font-medium pt-1 flex items-center justify-center sm:justify-start gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Platform Executive Clearance: Active · System Administrator</span>
+                <span>
+                  Platform Executive Clearance: Active · System Administrator
+                </span>
               </p>
             ) : profileData?.role === 'instructor' ? (
               <p className="text-xs text-teal-400 font-medium pt-1 flex items-center justify-center sm:justify-start gap-1.5">
@@ -158,7 +168,10 @@ export default function ProfilePage() {
         </div>
 
         {/* Edit Form */}
-        <form onSubmit={handleSaveProfile} className="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/20 space-y-6">
+        <form
+          onSubmit={handleSaveProfile}
+          className="glass-card rounded-3xl p-6 sm:p-8 border border-indigo-500/20 space-y-6"
+        >
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             <User className="w-4 h-4 text-teal-400" />
             <span>Profile & Credential Settings</span>
@@ -179,7 +192,8 @@ export default function ProfilePage() {
                 className="w-full px-4 py-3 rounded-xl glass-input text-sm text-white placeholder-indigo-300/30 focus:outline-none"
               />
               <p className="text-[11px] text-indigo-300/50 mt-1.5">
-                This exact name will be engraved on all your issued certificates.
+                This exact name will be engraved on all your issued
+                certificates.
               </p>
             </div>
 
@@ -197,7 +211,9 @@ export default function ProfilePage() {
                 />
                 <Mail className="w-4 h-4 text-indigo-400/40 absolute right-4 top-3.5" />
               </div>
-              <p className="text-[11px] text-indigo-300/50 mt-1.5">Managed by account authentication</p>
+              <p className="text-[11px] text-indigo-300/50 mt-1.5">
+                Managed by account authentication
+              </p>
             </div>
           </div>
 
@@ -281,7 +297,9 @@ export default function ProfilePage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <Award className="w-5 h-5 text-teal-400" />
-              <h3 className="text-lg font-bold text-white tracking-tight">Verified Gyanix Academy Credentials</h3>
+              <h3 className="text-lg font-bold text-white tracking-tight">
+                Verified Gyanix Academy Credentials
+              </h3>
             </div>
             <span className="text-xs text-indigo-300/60 font-semibold uppercase">
               {certificates.length} Conferred
@@ -293,16 +311,23 @@ export default function ProfilePage() {
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/15 flex items-center justify-center mx-auto text-indigo-300 text-xl font-bold">
                 📜
               </div>
-              <p className="text-sm font-bold text-white">No Certificates Conferred Yet</p>
+              <p className="text-sm font-bold text-white">
+                No Certificates Conferred Yet
+              </p>
               <p className="text-xs text-indigo-200/60 max-w-sm mx-auto">
-                Complete your enrolled course modules and pass the AI Assessment to earn your verified credential.
+                Complete your enrolled course modules and pass the AI Assessment
+                to earn your verified credential.
               </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {certificates.map((cert: any) => {
-                const certId = typeof cert === 'object' ? cert._id || cert.certificateId : cert;
-                const title = cert.courseTitle || 'Executive Certificate of Achievement';
+                const certId =
+                  typeof cert === 'object'
+                    ? cert._id || cert.certificateId
+                    : cert;
+                const title =
+                  cert.courseTitle || 'Executive Certificate of Achievement';
                 return (
                   <div
                     key={certId}
@@ -311,9 +336,15 @@ export default function ProfilePage() {
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between text-[11px] text-teal-400 font-bold uppercase tracking-wider">
                         <span>Verified Diploma</span>
-                        <span>{cert.completedAt ? new Date(cert.completedAt).toLocaleDateString() : 'Issued'}</span>
+                        <span>
+                          {cert.completedAt
+                            ? new Date(cert.completedAt).toLocaleDateString()
+                            : 'Issued'}
+                        </span>
                       </div>
-                      <h4 className="text-sm font-bold text-white line-clamp-1">{title}</h4>
+                      <h4 className="text-sm font-bold text-white line-clamp-1">
+                        {title}
+                      </h4>
                       <p className="text-xs text-indigo-200/60">ID: {certId}</p>
                     </div>
 

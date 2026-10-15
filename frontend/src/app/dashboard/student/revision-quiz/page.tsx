@@ -10,16 +10,11 @@ import {
   CheckCircle2,
   XCircle,
   RotateCcw,
-  Award,
-  ArrowRight,
-  BookOpen,
   Layers,
   HelpCircle,
   Clock,
   GraduationCap,
   Globe,
-  Flame,
-  Target,
   AlertTriangle,
   Lightbulb,
   Check,
@@ -29,7 +24,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '@/lib/api';
-import { useAuthStore } from '@/store/useAuthStore';
+import { apiError } from '@/lib/errors';
 
 interface Question {
   question: string;
@@ -57,8 +52,8 @@ type DifficultyLevel = 'beginner' | 'intermediate' | 'advanced';
 
 function RevisionQuizContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
-  const { user } = useAuthStore();
+  useRouter();
+
   const initialTopic = searchParams.get('topic') || '';
 
   // Source selection state
@@ -69,15 +64,20 @@ function RevisionQuizContent() {
   const [loadingCourses, setLoadingCourses] = useState<boolean>(false);
 
   // Quiz parameters
-  const [topic, setTopic] = useState(initialTopic || 'Full Stack Web Development');
+  const [topic, setTopic] = useState(
+    initialTopic || 'Full Stack Web Development',
+  );
   const [difficulty, setDifficulty] = useState<DifficultyLevel>('intermediate');
   const [count, setCount] = useState<number>(5);
 
   // Quiz execution state
   const [loading, setLoading] = useState(false);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [generationMode, setGenerationMode] = useState('offline');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswers, setSelectedAnswers] = useState<Record<number, string>>({});
+  const [selectedAnswers, setSelectedAnswers] = useState<
+    Record<number, string>
+  >({});
   const [isEvaluationReady, setIsEvaluationReady] = useState(false);
   const [showInstantExplanation, setShowInstantExplanation] = useState(true);
 
@@ -85,50 +85,48 @@ function RevisionQuizContent() {
   const [timeElapsed, setTimeElapsed] = useState(0);
   const [timerActive, setTimerActive] = useState(false);
 
-  // Fetch enrolled classroom courses
+  // Read actual enrolled course records. Public catalog entries are not classroom membership.
   useEffect(() => {
-    let isMounted = true;
+    const controller = new AbortController();
     setLoadingCourses(true);
-
     api
-      .get('/users/enrolled-courses')
+      .get('/enrollments/my', { signal: controller.signal })
       .then((res) => {
-        if (!isMounted) return;
-        const enrolled = res.data?.courses || res.data?.data || [];
-        if (Array.isArray(enrolled) && enrolled.length > 0) {
-          setCourses(enrolled);
-          setSelectedCourseId(enrolled[0]._id);
-        } else {
-          // Fallback to published courses
-          return api.get('/courses').then((courseRes) => {
-            if (!isMounted) return;
-            const allCourses = courseRes.data?.courses || courseRes.data?.data || [];
-            if (Array.isArray(allCourses) && allCourses.length > 0) {
-              setCourses(allCourses);
-              setSelectedCourseId(allCourses[0]._id);
-            }
-          });
-        }
+        const enrolled = (res.data.data || [])
+          .map(
+            (entry: { course?: ClassroomCourse & { status?: string } }) =>
+              entry.course,
+          )
+          .filter(
+            (
+              course: (ClassroomCourse & { status?: string }) | undefined,
+            ): course is ClassroomCourse =>
+              !!course && course.status === 'published',
+          );
+        setCourses(enrolled);
+        if (enrolled[0]) setSelectedCourseId(enrolled[0]._id);
       })
-      .catch(() => {
-        // Fallback to public catalog
-        api.get('/courses').then((courseRes) => {
-          if (!isMounted) return;
-          const allCourses = courseRes.data?.courses || courseRes.data?.data || [];
-          if (Array.isArray(allCourses) && allCourses.length > 0) {
-            setCourses(allCourses);
-            setSelectedCourseId(allCourses[0]._id);
-          }
-        }).catch(() => {});
-      })
+      .catch(() => {})
       .finally(() => {
-        if (isMounted) setLoadingCourses(false);
+        if (!controller.signal.aborted) setLoadingCourses(false);
       });
-
-    return () => {
-      isMounted = false;
-    };
+    return () => controller.abort();
   }, []);
+  useEffect(() => {
+    if (sourceType !== 'classroom' || !selectedCourseId) return;
+    const controller = new AbortController();
+    api
+      .get('/courses/' + selectedCourseId, { signal: controller.signal })
+      .then((res) =>
+        setCourses((current) =>
+          current.map((course) =>
+            course._id === selectedCourseId ? res.data.data : course,
+          ),
+        ),
+      )
+      .catch(() => {});
+    return () => controller.abort();
+  }, [selectedCourseId, sourceType]);
 
   // Update topic when course is selected
   useEffect(() => {
@@ -197,107 +195,34 @@ function RevisionQuizContent() {
         topic: activeTopic,
         difficulty,
         count,
-        content: activeCourse?.title === activeTopic ? activeCourse?.title : undefined,
+        content:
+          activeCourse?.title === activeTopic ? activeCourse?.title : undefined,
       });
 
-      if (res.data?.success && res.data?.data?.questions && res.data.data.questions.length > 0) {
+      if (
+        res.data?.success &&
+        res.data?.data?.questions &&
+        res.data.data.questions.length > 0
+      ) {
         setQuestions(res.data.data.questions);
+        setGenerationMode(res.data.data.mode || 'offline');
         setTimerActive(true);
-        toast.success(`✨ Generated ${res.data.data.questions.length} questions on ${activeTopic}!`);
+        toast.success(
+          `Created ${res.data.data.questions.length} ${res.data.data.mode === 'offline' ? 'offline practice' : 'LLM-drafted'} questions on ${activeTopic}.`,
+        );
       } else {
         throw new Error('No questions returned');
       }
-    } catch {
-      // High-yield fallback questions
-      const fallbackQuestions: Question[] = [
-        {
-          question: `In the context of ${activeTopic}, what is the foundational purpose of architectural decomposition?`,
-          options: [
-            'To isolate state, minimize cognitive load, and allow independent testing across components',
-            'To increase memory consumption across all microservices',
-            'To eliminate the need for version control and type safety',
-            'To force synchronous execution across all asynchronous handlers',
-          ],
-          correctAnswer:
-            'To isolate state, minimize cognitive load, and allow independent testing across components',
-          explanation:
-            'Modular decomposition isolates state and dependencies so individual modules can be implemented, tested, and scaled independently without cascading regressions.',
-          difficulty,
-          points: 1,
-        },
-        {
-          question: `Which layer in production engineering is strictly responsible for enforcing authentication, authorization, and schema validation contracts?`,
-          options: [
-            'Client browser storage and DOM event listeners',
-            'Application Server / Secure Middleware layer',
-            'External CDN edge caching tier',
-            'CSS stylesheet post-processor',
-          ],
-          correctAnswer: 'Application Server / Secure Middleware layer',
-          explanation:
-            'Security boundaries and data integrity must always be validated on the trusted server/API layer before allowing any mutation on persistent database records.',
-          difficulty,
-          points: 1,
-        },
-        {
-          question: `What distinguishes idempotency in reliable distributed system workflows and REST APIs?`,
-          options: [
-            'Executing multiple identical requests produces the exact same side-effect as executing a single request',
-            'Requests that can only run once every 24 hours during maintenance windows',
-            'Functions that cannot take input arguments or return status codes',
-            'Database transactions that execute in reverse chronological order',
-          ],
-          correctAnswer:
-            'Executing multiple identical requests produces the exact same side-effect as executing a single request',
-          explanation:
-            'Idempotency ensures safe network retries without unintended side effects like duplicate payments or duplicate database mutations.',
-          difficulty,
-          points: 1,
-        },
-        {
-          question: `What is the primary trade-off when optimizing data caching with aggressive Time-To-Live (TTL)?`,
-          options: [
-            'Significantly lower database load and latency at the potential cost of serving temporarily stale data',
-            'Higher bandwidth utilization on edge routers',
-            'Total elimination of database connection pools',
-            'Instant compilation of client-side JavaScript bundles',
-          ],
-          correctAnswer:
-            'Significantly lower database load and latency at the potential cost of serving temporarily stale data',
-          explanation:
-            'Aggressive caching minimizes backend load, but requires on-demand revalidation mechanisms to prevent users from consuming outdated state.',
-          difficulty,
-          points: 1,
-        },
-        {
-          question: `Why are automated unit tests and continuous diagnostic assertions vital in ${activeTopic}?`,
-          options: [
-            'They catch regressions early, verify functional contracts, and ensure deterministic system behavior',
-            'They replace the need for writing production code',
-            'They bypass runtime exceptions without logging',
-            'They compress bundle assets into binary machine code',
-          ],
-          correctAnswer:
-            'They catch regressions early, verify functional contracts, and ensure deterministic system behavior',
-          explanation:
-            'Automated tests ensure that modifications or optimizations preserve the fundamental contracts and invariants of the application.',
-          difficulty,
-          points: 1,
-        },
-      ];
-      setQuestions(fallbackQuestions.slice(0, count));
-      setTimerActive(true);
-      toast.success('Generated adaptive revision quiz!');
+    } catch (error) {
+      toast.error(
+        apiError(error, 'Could not generate questions. Please try again.'),
+      );
+      setQuestions([]);
+      setTimerActive(false);
     } finally {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (initialTopic) {
-      handleGenerate();
-    }
-  }, [initialTopic]);
 
   const handleSelectOption = (qIdx: number, option: string) => {
     if (isEvaluationReady) return;
@@ -320,7 +245,10 @@ function RevisionQuizContent() {
       } else {
         incorrectCount++;
         // Extract concept summary for weak areas
-        const preview = q.question.split('?')[0].replace(/in the context of|which layer|what is the/gi, '').trim();
+        const preview = q.question
+          .split('?')[0]
+          .replace(/in the context of|which layer|what is the/gi, '')
+          .trim();
         weakAreas.push(preview.slice(0, 60));
       }
     });
@@ -358,7 +286,9 @@ function RevisionQuizContent() {
   const handleFinishQuiz = () => {
     setTimerActive(false);
     setIsEvaluationReady(true);
-    toast.success(`Quiz Completed! Final Score: ${scoreStats.correctCount}/${scoreStats.total}`);
+    toast.success(
+      `Quiz Completed! Final Score: ${scoreStats.correctCount}/${scoreStats.total}`,
+    );
   };
 
   return (
@@ -368,6 +298,14 @@ function RevisionQuizContent() {
       <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 max-w-4xl mx-auto space-y-6">
+        {questions.length > 0 && (
+          <p className="ws-note">
+            {generationMode === 'live'
+              ? 'LLM-drafted practice questions. Review important explanations.'
+              : 'Offline template practice. These generic examples are not live AI output.'}{' '}
+            Practice scores do not issue certificates.
+          </p>
+        )}
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-indigo-500/20">
           <div className="space-y-1">
@@ -377,20 +315,21 @@ function RevisionQuizContent() {
                 className="hover:text-teal-300 transition flex items-center gap-1"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
-                <span>Student Cockpit</span>
+                <span>Student workspace</span>
               </Link>
               <span>/</span>
-              <span className="text-white font-bold">AI Revision Quiz Arena</span>
+              <span className="text-white font-bold">Revision quizzes</span>
             </div>
 
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-cyan-400 via-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25">
                 <Brain className="w-4 h-4 text-white" />
               </div>
-              <span>On-Demand AI Revision Quiz</span>
+              <span>Topic revision quiz</span>
             </h1>
             <p className="text-xs text-indigo-200/80">
-              Generate self-paced diagnostic assessments on enrolled classroom courses or any custom topic in seconds.
+              Generate self-paced diagnostic assessments on enrolled classroom
+              courses or any custom topic in seconds.
             </p>
           </div>
 
@@ -422,7 +361,8 @@ function RevisionQuizContent() {
                 Launch Diagnostic AI Quiz
               </h2>
               <p className="text-xs text-indigo-200/70">
-                Choose whether you want to test from your enrolled classroom curriculum or any external subject.
+                Choose whether you want to test from your enrolled classroom
+                curriculum or any external subject.
               </p>
             </div>
 
@@ -484,9 +424,12 @@ function RevisionQuizContent() {
                           }`}
                         >
                           <div className="min-w-0 pr-3">
-                            <h4 className="text-xs font-bold truncate">{c.title}</h4>
+                            <h4 className="text-xs font-bold truncate">
+                              {c.title}
+                            </h4>
                             <p className="text-[10px] text-indigo-300/60 truncate capitalize">
-                              {c.category || 'General'} • {c.level || 'All Levels'}
+                              {c.category || 'General'} •{' '}
+                              {c.level || 'All Levels'}
                             </p>
                           </div>
                           {isSelected ? (
@@ -502,7 +445,9 @@ function RevisionQuizContent() {
                   </div>
                 ) : (
                   <div className="p-4 text-center text-xs text-indigo-300/60">
-                    {loadingCourses ? 'Loading your courses...' : 'No enrolled courses found. Switch to external topic tab!'}
+                    {loadingCourses
+                      ? 'Loading your courses...'
+                      : 'No enrolled courses found. Switch to external topic tab!'}
                   </div>
                 )}
 
@@ -588,12 +533,26 @@ function RevisionQuizContent() {
 
             {/* ── 3. Difficulty Selector (Custom Pill Buttons - No Glitchy Dropdown!) ── */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-indigo-200">Difficulty Level:</label>
+              <label className="text-xs font-bold text-indigo-200">
+                Difficulty Level:
+              </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'beginner' as DifficultyLevel, label: 'Beginner', desc: 'Foundations & Definitions' },
-                  { id: 'intermediate' as DifficultyLevel, label: 'Intermediate', desc: 'Applied Architecture' },
-                  { id: 'advanced' as DifficultyLevel, label: 'Advanced', desc: 'Edge Cases & Mastery' },
+                  {
+                    id: 'beginner' as DifficultyLevel,
+                    label: 'Beginner',
+                    desc: 'Foundations & Definitions',
+                  },
+                  {
+                    id: 'intermediate' as DifficultyLevel,
+                    label: 'Intermediate',
+                    desc: 'Applied Architecture',
+                  },
+                  {
+                    id: 'advanced' as DifficultyLevel,
+                    label: 'Advanced',
+                    desc: 'Edge Cases & Mastery',
+                  },
                 ].map((item) => {
                   const isActive = difficulty === item.id;
                   return (
@@ -609,9 +568,13 @@ function RevisionQuizContent() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold">{item.label}</span>
-                        {isActive && <Check className="w-3.5 h-3.5 text-teal-400" />}
+                        {isActive && (
+                          <Check className="w-3.5 h-3.5 text-teal-400" />
+                        )}
                       </div>
-                      <p className="text-[9px] text-indigo-300/60 truncate mt-0.5">{item.desc}</p>
+                      <p className="text-[9px] text-indigo-300/60 truncate mt-0.5">
+                        {item.desc}
+                      </p>
                     </button>
                   );
                 })}
@@ -620,12 +583,26 @@ function RevisionQuizContent() {
 
             {/* ── 4. Question Count Selector (Custom Pill Buttons) ── */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-indigo-200">Question Count:</label>
+              <label className="text-xs font-bold text-indigo-200">
+                Question Count:
+              </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: 3, label: '3 Questions', desc: 'Quick Recall (5 min)' },
-                  { value: 5, label: '5 Questions', desc: 'Standard Diagnostic' },
-                  { value: 10, label: '10 Questions', desc: 'In-Depth Mock Exam' },
+                  {
+                    value: 3,
+                    label: '3 Questions',
+                    desc: 'Quick Recall (5 min)',
+                  },
+                  {
+                    value: 5,
+                    label: '5 Questions',
+                    desc: 'Standard Diagnostic',
+                  },
+                  {
+                    value: 10,
+                    label: '10 Questions',
+                    desc: 'In-Depth Mock Exam',
+                  },
                 ].map((item) => {
                   const isActive = count === item.value;
                   return (
@@ -641,9 +618,13 @@ function RevisionQuizContent() {
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold">{item.label}</span>
-                        {isActive && <Check className="w-3.5 h-3.5 text-cyan-400" />}
+                        {isActive && (
+                          <Check className="w-3.5 h-3.5 text-cyan-400" />
+                        )}
                       </div>
-                      <p className="text-[9px] text-indigo-300/60 truncate mt-0.5">{item.desc}</p>
+                      <p className="text-[9px] text-indigo-300/60 truncate mt-0.5">
+                        {item.desc}
+                      </p>
                     </button>
                   );
                 })}
@@ -660,7 +641,7 @@ function RevisionQuizContent() {
               {loading ? (
                 <>
                   <Sparkles className="w-4 h-4 text-cyan-300 animate-spin" />
-                  <span>Synthesizing Tailored Diagnostic Quiz...</span>
+                  <span>Preparing practice questions…</span>
                 </>
               ) : (
                 <>
@@ -704,7 +685,9 @@ function RevisionQuizContent() {
                 }`}
               >
                 <Lightbulb className="w-3 h-3" />
-                <span>Instant Explanation: {showInstantExplanation ? 'ON' : 'OFF'}</span>
+                <span>
+                  Instant Explanation: {showInstantExplanation ? 'ON' : 'OFF'}
+                </span>
               </button>
             </div>
 
@@ -725,8 +708,8 @@ function RevisionQuizContent() {
                       isCurrent
                         ? 'bg-cyan-500 text-black shadow-lg shadow-cyan-500/30 font-black'
                         : isAnswered
-                        ? 'bg-teal-500/30 text-teal-200 border border-teal-400/50'
-                        : 'bg-white/5 text-indigo-300/70 hover:text-white hover:bg-white/10 border border-indigo-500/20'
+                          ? 'bg-teal-500/30 text-teal-200 border border-teal-400/50'
+                          : 'bg-white/5 text-indigo-300/70 hover:text-white hover:bg-white/10 border border-indigo-500/20'
                     }`}
                   >
                     {qIdx + 1}
@@ -752,7 +735,8 @@ function RevisionQuizContent() {
                   {questions[currentIndex].options.map((opt, oIdx) => {
                     const isSelected = selectedAnswers[currentIndex] === opt;
                     const isAnswered = !!selectedAnswers[currentIndex];
-                    const isCorrect = opt === questions[currentIndex].correctAnswer;
+                    const isCorrect =
+                      opt === questions[currentIndex].correctAnswer;
                     const letter = String.fromCharCode(65 + oIdx);
 
                     let optStyle =
@@ -766,7 +750,8 @@ function RevisionQuizContent() {
                         optStyle =
                           'bg-rose-500/20 border-rose-400/80 text-rose-300 font-semibold';
                       } else {
-                        optStyle = 'bg-white/2 border-indigo-500/10 text-indigo-300/50 opacity-60';
+                        optStyle =
+                          'bg-white/2 border-indigo-500/10 text-indigo-300/50 opacity-60';
                       }
                     } else if (isSelected) {
                       optStyle =
@@ -796,9 +781,12 @@ function RevisionQuizContent() {
                         {isAnswered && showInstantExplanation && isCorrect && (
                           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                         )}
-                        {isAnswered && showInstantExplanation && isSelected && !isCorrect && (
-                          <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                        )}
+                        {isAnswered &&
+                          showInstantExplanation &&
+                          isSelected &&
+                          !isCorrect && (
+                            <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
+                          )}
                       </button>
                     );
                   })}
@@ -809,7 +797,9 @@ function RevisionQuizContent() {
                   <div className="p-4 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-xs text-teal-200 space-y-1.5 animate-in fade-in duration-200">
                     <div className="flex items-center gap-2 text-teal-300 font-black">
                       <HelpCircle className="w-4 h-4" />
-                      <span>Conceptual Explanation for Question {currentIndex + 1}:</span>
+                      <span>
+                        Conceptual Explanation for Question {currentIndex + 1}:
+                      </span>
                     </div>
                     <p className="leading-relaxed text-indigo-100/90 font-medium">
                       {questions[currentIndex].explanation}
@@ -872,7 +862,8 @@ function RevisionQuizContent() {
                     {topic} Quiz Analysis
                   </h2>
                   <p className="text-xs text-indigo-200/70">
-                    Completed in {formatTime(timeElapsed)} • {difficulty.toUpperCase()} Level
+                    Completed in {formatTime(timeElapsed)} •{' '}
+                    {difficulty.toUpperCase()} Level
                   </p>
                 </div>
 
@@ -880,7 +871,9 @@ function RevisionQuizContent() {
                   <div
                     className={`px-4 py-2 rounded-2xl border ${scoreStats.badgeBg} text-center`}
                   >
-                    <div className={`text-2xl font-black ${scoreStats.gradeColor}`}>
+                    <div
+                      className={`text-2xl font-black ${scoreStats.gradeColor}`}
+                    >
                       {scoreStats.percentage}%
                     </div>
                     <div className="text-[10px] font-bold text-white uppercase tracking-wider">
@@ -925,12 +918,15 @@ function RevisionQuizContent() {
                 <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/25 space-y-2">
                   <h4 className="text-xs font-bold text-rose-300 flex items-center gap-2">
                     <AlertTriangle className="w-4 h-4 text-rose-400" />
-                    <span>Identified Concept Traps & Review Recommendations:</span>
+                    <span>
+                      Identified Concept Traps & Review Recommendations:
+                    </span>
                   </h4>
                   <ul className="space-y-1 text-xs text-rose-100/90 list-disc list-inside">
                     {scoreStats.weakAreas.map((area, aIdx) => (
                       <li key={aIdx} className="leading-relaxed">
-                        Review architectural principles around: <strong>{area}</strong>
+                        Review architectural principles around:{' '}
+                        <strong>{area}</strong>
                       </li>
                     ))}
                   </ul>
@@ -1039,7 +1035,8 @@ function RevisionQuizContent() {
                         const isChosen = userAns === opt;
                         const isTheCorrect = opt === q.correctAnswer;
 
-                        let style = 'bg-white/2 border-indigo-500/10 text-indigo-300/60';
+                        let style =
+                          'bg-white/2 border-indigo-500/10 text-indigo-300/60';
                         if (isTheCorrect) {
                           style =
                             'bg-emerald-500/15 border-emerald-400/60 text-emerald-200 font-semibold';

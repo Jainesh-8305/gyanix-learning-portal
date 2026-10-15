@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 import { useState } from 'react';
 import useSWR from 'swr';
@@ -9,25 +8,29 @@ import CourseFilters from '@/components/courses/CourseFilters';
 import AstroMascot from '@/components/ui/AstroMascot';
 import { Course } from '@/types';
 
-const fetcher = (url: string) => api.get(url).then(r => r.data);
+const fetcher = (url: string) => api.get(url).then((r) => r.data);
 
 export default function CoursesPage() {
   const [filters, setFilters] = useState({
-    search: '', category: '', level: '', sort: '-createdAt', page: 1,
+    search: '',
+    category: '',
+    level: '',
+    sort: '-createdAt',
+    page: 1,
   });
 
   const queryString = new URLSearchParams(
     Object.fromEntries(
       Object.entries(filters)
         .filter(([_, v]) => v !== '' && v !== 1)
-        .map(([k, v]) => [k, String(v)])
-    )
+        .map(([k, v]) => [k, String(v)]),
+    ),
   ).toString();
 
   const { data, isLoading } = useSWR(`/courses?${queryString}`, fetcher);
 
   const handleFilterChange = (newFilters: Partial<typeof filters>) => {
-    setFilters(prev => ({ ...prev, ...newFilters, page: 1 }));
+    setFilters((prev) => ({ ...prev, ...newFilters, page: 1 }));
   };
 
   return (
@@ -61,7 +64,9 @@ export default function CoursesPage() {
 
               {/* Subtitle Matching Dashboard Body Font */}
               <p className="text-sm text-indigo-200/70 max-w-xl leading-relaxed">
-                {data?.pagination?.total || 0} premier curricula charted across the galaxy. Explore deep technical masterclasses, advance your skills, and unlock verified credentials.
+                {data?.pagination?.total || 0} premier curricula charted across
+                the galaxy. Explore deep technical masterclasses, advance your
+                skills, and unlock verified credentials.
               </p>
 
               {/* Proportional Cosmic Search Bar */}
@@ -74,7 +79,9 @@ export default function CoursesPage() {
                     type="text"
                     placeholder="Search for courses, technologies, topics…"
                     value={filters.search}
-                    onChange={e => handleFilterChange({ search: e.target.value })}
+                    onChange={(e) =>
+                      handleFilterChange({ search: e.target.value })
+                    }
                     className="bg-transparent text-white placeholder:text-indigo-200/60 text-xs sm:text-sm font-medium px-2 py-1.5 w-full focus:outline-none"
                   />
                   {filters.search && (
@@ -99,7 +106,10 @@ export default function CoursesPage() {
 
             {/* Astronaut Mascot Cockpit Wing */}
             <div className="hidden lg:flex flex-col items-center justify-center p-2">
-              <AstroMascot role="student" className="w-32 h-32 drop-shadow-[0_15px_30px_rgba(99,102,241,0.45)] animate-float" />
+              <AstroMascot
+                role="student"
+                className="w-32 h-32 drop-shadow-[0_15px_30px_rgba(99,102,241,0.45)] animate-float"
+              />
               <div className="mt-2.5 px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-400/30 text-indigo-200 text-xs font-semibold">
                 Student Learning Center
               </div>
@@ -111,7 +121,10 @@ export default function CoursesPage() {
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-4 py-10 flex gap-8">
         <aside className="w-64 shrink-0 hidden lg:block">
-          <CourseFilters filters={filters} onFilterChange={handleFilterChange} />
+          <CourseFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+          />
         </aside>
 
         <main className="flex-1">
@@ -120,7 +133,9 @@ export default function CoursesPage() {
             <div className="flex items-center gap-2.5">
               <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
               <p className="text-white font-bold text-sm">
-                {isLoading ? 'Scanning academy archives...' : `${data?.data?.length || 0} active courses`}
+                {isLoading
+                  ? 'Scanning academy archives...'
+                  : `${data?.data?.length || 0} active courses`}
               </p>
             </div>
             <div className="flex items-center gap-2.5">
@@ -129,14 +144,21 @@ export default function CoursesPage() {
               </span>
               <select
                 value={filters.sort}
-                onChange={e => handleFilterChange({ sort: e.target.value })}
+                onChange={(e) => handleFilterChange({ sort: e.target.value })}
                 className="px-4 py-2 bg-[#05060f]/95 border-2 border-indigo-400/40 hover:border-teal-400 focus:border-teal-400 rounded-xl text-sm font-bold text-white shadow-lg focus:outline-none focus:ring-2 focus:ring-teal-400/25 transition cursor-pointer"
               >
-                <option value="-createdAt" className="bg-[#0c0f24] text-white">Newest</option>
-                <option value="-rating" className="bg-[#0c0f24] text-white">Highest rated</option>
-                <option value="-totalStudents" className="bg-[#0c0f24] text-white">Most popular</option>
-                <option value="price" className="bg-[#0c0f24] text-white">Price: low to high</option>
-                <option value="-price" className="bg-[#0c0f24] text-white">Price: high to low</option>
+                <option value="-createdAt" className="bg-[#0c0f24] text-white">
+                  Newest
+                </option>
+                <option value="-rating" className="bg-[#0c0f24] text-white">
+                  Highest rated
+                </option>
+                <option
+                  value="-totalStudents"
+                  className="bg-[#0c0f24] text-white"
+                >
+                  Most popular
+                </option>
               </select>
             </div>
           </div>
@@ -144,7 +166,10 @@ export default function CoursesPage() {
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="bg-[#0f1120]/60 border border-indigo-500/10 rounded-2xl h-72 animate-pulse" />
+                <div
+                  key={i}
+                  className="bg-[#0f1120]/60 border border-indigo-500/10 rounded-2xl h-72 animate-pulse"
+                />
               ))}
             </div>
           ) : data?.data?.length === 0 ? (
@@ -153,7 +178,9 @@ export default function CoursesPage() {
                 <Telescope size={28} className="text-indigo-300" />
               </div>
               <p className="text-white font-medium">No courses found</p>
-              <p className="text-indigo-200/40 text-sm mt-1">Try adjusting your filters</p>
+              <p className="text-indigo-200/40 text-sm mt-1">
+                Try adjusting your filters
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">

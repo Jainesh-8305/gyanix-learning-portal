@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-10-15T05:04:21.592Z",
+  "api": {
+    "student": {
+      "endpoint": "/enrollments/my",
+      "medianMs": 4.961749999999995,
+      "p95Ms": 11.499582999999973,
+      "responseBytes": 1811
+    },
+    "instructor": {
+      "endpoint": "/courses/instructor-overview",
+      "medianMs": 5.269667000000027,
+      "p95Ms": 7.1459579999999505,
+      "responseBytes": 2336
+    },
+    "admin": {
+      "endpoint": "/admin/dashboard",
+      "medianMs": 2.3187500000000227,
+      "p95Ms": 2.891750000000002,
+      "responseBytes": 97
+    }
+  },
+  "routes": {
+    "student": {
+      "scriptCount": 12,
+      "initialScriptBytes": 705018,
+      "htmlBytes": 14935
+    },
+    "instructor": {
+      "scriptCount": 12,
+      "initialScriptBytes": 702844,
+      "htmlBytes": 14941
+    },
+    "admin": {
+      "scriptCount": 12,
+      "initialScriptBytes": 690923,
+      "htmlBytes": 14931
+    }
+  }
+}

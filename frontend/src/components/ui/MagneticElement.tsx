@@ -34,12 +34,16 @@ export default function MagneticElement({
 
   return (
     <div
+      role="presentation"
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
         transform: `translate3d(${position.x}px, ${position.y}px, 0)`,
-        transition: position.x === 0 ? 'transform 0.5s cubic-bezier(0.2, 1, 0.3, 1)' : 'transform 0.1s ease-out',
+        transition:
+          position.x === 0
+            ? 'transform 0.5s cubic-bezier(0.2, 1, 0.3, 1)'
+            : 'transform 0.1s ease-out',
       }}
       className={`inline-block ${className}`}
     >

@@ -16,8 +16,6 @@ import {
   Search,
   Plus,
   Bot,
-  User as UserIcon,
-  ShieldCheck,
   GraduationCap,
 } from 'lucide-react';
 import api from '@/lib/api';
@@ -36,12 +34,13 @@ const fetcher = async (url: string) => {
   }
 };
 
-
 export default function CourseCommunityPage() {
   const { id: courseId } = useParams();
   const { user } = useAuthStore();
 
-  const [activeFilter, setActiveFilter] = useState<'all' | 'unresolved' | 'resolved'>('all');
+  const [activeFilter, setActiveFilter] = useState<
+    'all' | 'unresolved' | 'resolved'
+  >('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [showNewTopic, setShowNewTopic] = useState(false);
 
@@ -53,11 +52,15 @@ export default function CourseCommunityPage() {
 
   // Reply Form
   const [replyContent, setReplyContent] = useState<Record<string, string>>({});
-  const [replyingId, setReplyingId] = useState<string | null>(null);
 
-  const { data: courseData } = useSWR(courseId ? `/courses/${courseId}` : null, fetcher);
+  const { data: courseData } = useSWR(
+    courseId ? `/courses/${courseId}` : null,
+    fetcher,
+  );
   const { data: discussionsData, mutate } = useSWR(
-    courseId ? `/courses/${courseId}/discussions?filter=${activeFilter}&search=${encodeURIComponent(searchTerm)}` : null,
+    courseId
+      ? `/courses/${courseId}/discussions?filter=${activeFilter}&search=${encodeURIComponent(searchTerm)}`
+      : null,
     fetcher,
     {
       // Don't throw on 403 — let us handle it gracefully
@@ -66,35 +69,51 @@ export default function CourseCommunityPage() {
         if (retryCount >= 3) return;
         setTimeout(() => revalidate({ retryCount }), 5000);
       },
-    }
+    },
   );
 
   const course = courseData?.data;
-  const isNotEnrolled = discussionsData?.requiresEnrollment === true || !discussionsData?.success;
-  const discussions: any[] = (!isNotEnrolled && discussionsData?.data) ? discussionsData.data : [];
+  const isNotEnrolled =
+    discussionsData?.requiresEnrollment === true || !discussionsData?.success;
+  const discussions: any[] =
+    !isNotEnrolled && discussionsData?.data ? discussionsData.data : [];
 
   // Enrollment-required locked screen
   if (isNotEnrolled && discussionsData !== undefined) {
     return (
-      <div className="min-h-screen bg-[#05060f] flex items-center justify-center p-6" style={{ zIndex: 10, position: 'relative' }}>
+      <div
+        className="min-h-screen bg-[#05060f] flex items-center justify-center p-6"
+        style={{ zIndex: 10, position: 'relative' }}
+      >
         <div className="max-w-md w-full text-center">
           <div className="w-24 h-24 rounded-full bg-gradient-to-br from-indigo-500/20 to-teal-500/20 border border-indigo-500/30 flex items-center justify-center mx-auto mb-6 text-5xl">
             🔒
           </div>
-          <h2 className="text-2xl font-bold text-white mb-3">Community Access Locked</h2>
+          <h2 className="text-2xl font-bold text-white mb-3">
+            Community Access Locked
+          </h2>
           <p className="text-slate-400 mb-2">
-            The <span className="text-indigo-400 font-semibold">{course?.title || 'this course'}</span> community is exclusively for enrolled students.
+            The{' '}
+            <span className="text-indigo-400 font-semibold">
+              {course?.title || 'this course'}
+            </span>{' '}
+            community is exclusively for enrolled students.
           </p>
           <p className="text-slate-500 text-sm mb-8">
-            Enroll in the course to join discussions, ask doubts, get AI tutor answers, and collaborate with fellow scholars.
+            Enroll in the course to join discussions, ask doubts, get AI tutor
+            answers, and collaborate with fellow scholars.
           </p>
           <div className="flex flex-col gap-3">
-            <Link href={`/courses/${courseId}`}
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-teal-500 text-white font-semibold hover:opacity-90 transition-opacity text-center block">
+            <Link
+              href={`/courses/${courseId}`}
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-teal-500 text-white font-semibold hover:opacity-90 transition-opacity text-center block"
+            >
               🚀 Enroll to Join Community
             </Link>
-            <Link href="/courses"
-              className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-colors text-center block">
+            <Link
+              href="/courses"
+              className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-300 hover:bg-white/10 transition-colors text-center block"
+            >
               ← Browse All Courses
             </Link>
           </div>
@@ -102,8 +121,6 @@ export default function CourseCommunityPage() {
       </div>
     );
   }
-
-
 
   const handleCreateTopic = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -200,7 +217,8 @@ export default function CourseCommunityPage() {
               {course?.title || 'Course Community Forum'}
             </h1>
             <p className="text-xs sm:text-sm text-indigo-200/60">
-              Ask questions, discuss technical architectures, and get verified answers from faculty & AI.
+              Ask questions, discuss technical architectures, and get verified
+              answers from faculty & AI.
             </p>
           </div>
         </div>
@@ -317,7 +335,8 @@ export default function CourseCommunityPage() {
             </div>
             <p className="text-white font-bold text-base">No discussions yet</p>
             <p className="text-xs text-indigo-200/60 max-w-sm mx-auto">
-              Be the first scholar to ask a question or start a conversation in this curriculum!
+              Be the first scholar to ask a question or start a conversation in
+              this curriculum!
             </p>
           </div>
         ) : (
@@ -331,7 +350,9 @@ export default function CourseCommunityPage() {
                 <div className="flex items-start justify-between gap-4">
                   <div className="space-y-1 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-bold text-white text-base">{d.title}</h3>
+                      <h3 className="font-bold text-white text-base">
+                        {d.title}
+                      </h3>
                       {d.isResolved && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/15 text-teal-300 border border-teal-500/30">
                           <CheckCircle2 className="w-3 h-3" />
@@ -340,7 +361,11 @@ export default function CourseCommunityPage() {
                       )}
                     </div>
                     <p className="text-xs text-indigo-200/60">
-                      Posted by <span className="text-white font-semibold">{d.user?.name || 'Scholar'}</span> · {new Date(d.createdAt).toLocaleDateString()}
+                      Posted by{' '}
+                      <span className="text-white font-semibold">
+                        {d.user?.name || 'Scholar'}
+                      </span>{' '}
+                      · {new Date(d.createdAt).toLocaleDateString()}
                     </p>
                   </div>
 
@@ -353,7 +378,9 @@ export default function CourseCommunityPage() {
                       <span>{d.upvotes?.length || 0}</span>
                     </button>
 
-                    {(user?._id === d.user?._id || user?.role === 'instructor' || user?.role === 'admin') && (
+                    {(user?._id === d.user?._id ||
+                      user?.role === 'instructor' ||
+                      user?.role === 'admin') && (
                       <button
                         onClick={() => handleToggleResolve(d._id)}
                         className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-teal-400 transition cursor-pointer"
@@ -380,8 +407,8 @@ export default function CourseCommunityPage() {
                           r.isAiAnswer
                             ? 'bg-teal-500/10 border border-teal-500/30'
                             : r.isInstructorReply
-                            ? 'bg-indigo-500/15 border border-indigo-500/30'
-                            : 'bg-white/3 border border-white/5'
+                              ? 'bg-indigo-500/15 border border-indigo-500/30'
+                              : 'bg-white/3 border border-white/5'
                         }`}
                       >
                         <div className="flex items-center justify-between text-[11px]">
@@ -394,13 +421,21 @@ export default function CourseCommunityPage() {
                             ) : r.isInstructorReply ? (
                               <span className="flex items-center gap-1 text-amber-300">
                                 <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
-                                <span>{r.user?.name || 'Faculty Member'} (Faculty)</span>
+                                <span>
+                                  {r.user?.name || 'Faculty Member'} (Faculty)
+                                </span>
                               </span>
                             ) : (
-                              <span className="text-white">{r.user?.name || 'Scholar'}</span>
+                              <span className="text-white">
+                                {r.user?.name || 'Scholar'}
+                              </span>
                             )}
                           </div>
-                          <span className="text-indigo-300/40">{new Date(r.createdAt || Date.now()).toLocaleDateString()}</span>
+                          <span className="text-indigo-300/40">
+                            {new Date(
+                              r.createdAt || Date.now(),
+                            ).toLocaleDateString()}
+                          </span>
                         </div>
                         <p className="text-indigo-100/90 whitespace-pre-wrap leading-relaxed">
                           {r.content}
@@ -415,7 +450,12 @@ export default function CourseCommunityPage() {
                   <input
                     type="text"
                     value={replyContent[d._id] || ''}
-                    onChange={(e) => setReplyContent({ ...replyContent, [d._id]: e.target.value })}
+                    onChange={(e) =>
+                      setReplyContent({
+                        ...replyContent,
+                        [d._id]: e.target.value,
+                      })
+                    }
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') handleAddReply(d._id);
                     }}

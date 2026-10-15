@@ -11,19 +11,13 @@ const {
 // ─── @GET /api/admin/dashboard ────────────────────────────────
 const getDashboard = async (req, res, next) => {
   try {
-    const [totalUsers, totalCourses, totalEnrollments, pendingCourses] = await Promise.all([
-      User.countDocuments(),
-      Course.countDocuments({ status: 'published' }),
-      Enrollment.countDocuments(),
-      Course.countDocuments({ status: 'pending' }),
-    ]);
-
-    // Revenue (last 30 days)
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const revenueResult = await Enrollment.aggregate([
-      { $match: { createdAt: { $gte: thirtyDaysAgo } } },
-      { $group: { _id: null, total: { $sum: '$amountPaid' } } },
-    ]);
+    const [totalUsers, totalCourses, totalEnrollments, pendingCourses] =
+      await Promise.all([
+        User.countDocuments(),
+        Course.countDocuments({ status: 'published' }),
+        Enrollment.countDocuments(),
+        Course.countDocuments({ status: 'pending' }),
+      ]);
 
     res.json({
       success: true,
@@ -32,7 +26,6 @@ const getDashboard = async (req, res, next) => {
         totalCourses,
         totalEnrollments,
         pendingCourses,
-        revenueThisMonth: revenueResult[0]?.total || 0,
       },
     });
   } catch (error) {
@@ -45,22 +38,33 @@ const approveCourse = async (req, res, next) => {
   try {
     const course = await Course.findByIdAndUpdate(
       req.params.id,
-      { status: 'published', publishedAt: new Date(), adminFeedback: undefined },
-      { new: true }
+      {
+        status: 'published',
+        publishedAt: new Date(),
+        adminFeedback: undefined,
+      },
+      { new: true },
     ).populate('instructor', 'name email');
 
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+    if (!course)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Course not found' });
 
     // Notify instructor by email (fire and forget)
     if (course.instructor?.email) {
       sendCourseApproved(
         course.instructor.email,
         course.instructor.name,
-        course.title
-      ).catch(err => console.error('Email error (approve):', err.message));
+        course.title,
+      ).catch((err) => console.error('Email error (approve):', err.message));
     }
 
-    res.json({ success: true, data: course, message: 'Course approved and published' });
+    res.json({
+      success: true,
+      data: course,
+      message: 'Course approved and published',
+    });
   } catch (error) {
     next(error);
   }
@@ -72,10 +76,13 @@ const rejectCourse = async (req, res, next) => {
     const course = await Course.findByIdAndUpdate(
       req.params.id,
       { status: 'rejected', adminFeedback: req.body.feedback },
-      { new: true }
+      { new: true },
     ).populate('instructor', 'name email');
 
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+    if (!course)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Course not found' });
 
     // Notify instructor by email (fire and forget)
     if (course.instructor?.email) {
@@ -83,8 +90,8 @@ const rejectCourse = async (req, res, next) => {
         course.instructor.email,
         course.instructor.name,
         course.title,
-        req.body.feedback
-      ).catch(err => console.error('Email error (reject):', err.message));
+        req.body.feedback,
+      ).catch((err) => console.error('Email error (reject):', err.message));
     }
 
     res.json({ success: true, data: course, message: 'Course rejected' });
@@ -98,7 +105,14 @@ const rejectCourse = async (req, res, next) => {
 const updateCourseStatus = async (req, res, next) => {
   try {
     const { status, feedback } = req.body;
-    const allowedStatuses = ['draft', 'pending', 'published', 'rejected', 'archived', 'hidden'];
+    const allowedStatuses = [
+      'draft',
+      'pending',
+      'published',
+      'rejected',
+      'archived',
+      'hidden',
+    ];
 
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({
@@ -115,13 +129,14 @@ const updateCourseStatus = async (req, res, next) => {
       updateFields.adminFeedback = feedback;
     }
 
-    const course = await Course.findByIdAndUpdate(
-      req.params.id,
-      updateFields,
-      { new: true }
-    ).populate('instructor', 'name email');
+    const course = await Course.findByIdAndUpdate(req.params.id, updateFields, {
+      new: true,
+    }).populate('instructor', 'name email');
 
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+    if (!course)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Course not found' });
 
     res.json({
       success: true,
@@ -138,21 +153,29 @@ const updateCourseStatus = async (req, res, next) => {
 const requestCourseChanges = async (req, res, next) => {
   try {
     const { feedback, status = 'rejected' } = req.body;
+    if (!['rejected', 'draft', 'hidden'].includes(status))
+      return res
+        .status(400)
+        .json({ success: false, message: 'Unsupported review status' });
 
     if (!feedback || !feedback.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Feedback or instruction details are required to send change request',
+        message:
+          'Feedback or instruction details are required to send change request',
       });
     }
 
     const course = await Course.findByIdAndUpdate(
       req.params.id,
       { status, adminFeedback: feedback.trim() },
-      { new: true }
+      { new: true },
     ).populate('instructor', 'name email');
 
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+    if (!course)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Course not found' });
 
     // Notify instructor with instructions via email
     if (course.instructor?.email) {
@@ -161,8 +184,10 @@ const requestCourseChanges = async (req, res, next) => {
         course.instructor.name,
         course.title,
         feedback.trim(),
-        `Course placed in "${status}" status pending your revisions.`
-      ).catch(err => console.error('Email error (requestChanges):', err.message));
+        `Course placed in "${status}" status pending your revisions.`,
+      ).catch((err) =>
+        console.error('Email error (requestChanges):', err.message),
+      );
     }
 
     res.json({
@@ -180,13 +205,17 @@ const requestCourseChanges = async (req, res, next) => {
 const deleteCourse = async (req, res, next) => {
   try {
     const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
+    if (!course)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Course not found' });
 
-    await course.deleteOne();
+    course.status = 'archived';
+    await course.save();
 
     res.json({
       success: true,
-      message: `Course "${course.title}" removed successfully by admin`,
+      message: `Course "${course.title}" archived by admin; learning records retained`,
     });
   } catch (error) {
     next(error);
@@ -197,9 +226,14 @@ const deleteCourse = async (req, res, next) => {
 const toggleUserStatus = async (req, res, next) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (!user)
+      return res
+        .status(404)
+        .json({ success: false, message: 'User not found' });
     if (user.role === 'admin') {
-      return res.status(403).json({ success: false, message: 'Cannot modify admin accounts' });
+      return res
+        .status(403)
+        .json({ success: false, message: 'Cannot modify admin accounts' });
     }
 
     user.isActive = !user.isActive;
@@ -218,17 +252,26 @@ const toggleUserStatus = async (req, res, next) => {
 // ─── @GET /api/admin/users ────────────────────────────────────
 const getUsers = async (req, res, next) => {
   try {
-    const { role, search, page = 1, limit = 20 } = req.query;
+    const { role, search } = req.query;
+    const { page, limit } = require('../utils/http').pagination(req.query);
     const filter = {};
+    if (role && !['student', 'instructor', 'admin'].includes(role))
+      throw require('../utils/http').fail(400, 'Unsupported role filter');
     if (role) filter.role = role;
-    if (search) filter.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-    ];
+    if (search) {
+      const safeSearch = require('../utils/http').literalSearch(search);
+      filter.$or = [
+        { name: { $regex: safeSearch, $options: 'i' } },
+        { email: { $regex: safeSearch, $options: 'i' } },
+      ];
+    }
 
     const [users, total] = await Promise.all([
-      User.find(filter).select('-password').sort('-createdAt')
-        .skip((page - 1) * limit).limit(Number(limit)),
+      User.find(filter)
+        .select('-password')
+        .sort('-createdAt')
+        .skip((page - 1) * limit)
+        .limit(Number(limit)),
       User.countDocuments(filter),
     ]);
 

@@ -20,7 +20,15 @@ const aiInteractionMemorySchema = new mongoose.Schema(
     },
     intent: {
       type: String,
-      enum: ['greeting', 'conceptual', 'code', 'exam_revision', 'coaching', 'correction', 'general'],
+      enum: [
+        'greeting',
+        'conceptual',
+        'code',
+        'exam_revision',
+        'coaching',
+        'correction',
+        'general',
+      ],
       default: 'general',
       index: true,
     },
@@ -34,7 +42,7 @@ const aiInteractionMemorySchema = new mongoose.Schema(
     },
     modelEngine: {
       type: String,
-      default: 'Gyanix Frontier Neural Hybrid (Claude Sonnet + GPT-4o + Gemini)',
+      default: 'Private feedback storage (not model training)',
     },
     feedback: {
       type: String,
@@ -55,7 +63,10 @@ const aiInteractionMemorySchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-module.exports = mongoose.model('AiInteractionMemory', aiInteractionMemorySchema);
+module.exports = mongoose.model(
+  'AiInteractionMemory',
+  aiInteractionMemorySchema,
+);

@@ -40,9 +40,9 @@ interface Spark {
 
 const COSMIC_COLORS = [
   'rgba(129, 140, 248, ', // Electric Indigo
-  'rgba(45, 212, 191, ',  // Neon Teal
+  'rgba(45, 212, 191, ', // Neon Teal
   'rgba(244, 114, 182, ', // Nebula Rose
-  'rgba(251, 191, 36, ',  // Celestial Gold
+  'rgba(251, 191, 36, ', // Celestial Gold
   'rgba(167, 139, 250, ', // Purple Zodiac
   'rgba(255, 255, 255, ', // Starlight White
 ];
@@ -93,7 +93,8 @@ export default function CosmicCursorCanvas() {
           vx: (Math.random() - 0.5) * 1.5,
           vy: (Math.random() - 0.5) * 1.5 - 0.5,
           size: Math.random() * 2 + 1,
-          color: COSMIC_COLORS[Math.floor(Math.random() * COSMIC_COLORS.length)],
+          color:
+            COSMIC_COLORS[Math.floor(Math.random() * COSMIC_COLORS.length)],
           alpha: 1,
           life: 30,
         });
@@ -111,7 +112,8 @@ export default function CosmicCursorCanvas() {
           vx: Math.cos(angle) * speed,
           vy: Math.sin(angle) * speed,
           size: Math.random() * 3 + 1.5,
-          color: COSMIC_COLORS[Math.floor(Math.random() * COSMIC_COLORS.length)],
+          color:
+            COSMIC_COLORS[Math.floor(Math.random() * COSMIC_COLORS.length)],
           alpha: 1,
           life: 45,
         });
@@ -214,7 +216,7 @@ export default function CosmicCursorCanvas() {
           0,
           mouse.x,
           mouse.y,
-          mouse.radius
+          mouse.radius,
         );
         glowGradient.addColorStop(0, 'rgba(99, 102, 241, 0.12)');
         glowGradient.addColorStop(0.4, 'rgba(45, 212, 191, 0.05)');
@@ -246,7 +248,8 @@ export default function CosmicCursorCanvas() {
               const p2 = particles[j];
               const dStars = Math.hypot(p1.x - p2.x, p1.y - p2.y);
               if (dStars < 85) {
-                const lineAlpha = (1 - dStars / 85) * (1 - dMouse / mouse.radius) * 0.25;
+                const lineAlpha =
+                  (1 - dStars / 85) * (1 - dMouse / mouse.radius) * 0.25;
                 ctx.strokeStyle = `rgba(129, 140, 248, ${lineAlpha})`;
                 ctx.lineWidth = 0.75;
                 ctx.beginPath();
@@ -284,7 +287,10 @@ export default function CosmicCursorCanvas() {
             const force = (1 - dist / mouse.radius) * 2;
             p.x += (dx / dist) * force;
             p.y += (dy / dist) * force;
-            p.alpha = Math.min(1, p.baseAlpha + (1 - dist / mouse.radius) * 0.6);
+            p.alpha = Math.min(
+              1,
+              p.baseAlpha + (1 - dist / mouse.radius) * 0.6,
+            );
           } else {
             p.alpha += (p.baseAlpha - p.alpha) * 0.05;
           }

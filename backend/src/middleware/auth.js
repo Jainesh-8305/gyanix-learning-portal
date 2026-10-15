@@ -1,62 +1,44 @@
-// backend/src/middleware/auth.js
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-
+async function authenticate(req) {
+  const token = req.headers.authorization?.startsWith('Bearer ')
+    ? req.headers.authorization.slice(7)
+    : null;
+  if (!token) return null;
+  const decoded = jwt.verify(token, process.env.JWT_SECRET, {
+    algorithms: ['HS256'],
+  });
+  const user = await User.findById(decoded.id);
+  if (
+    !user?.isActive ||
+    (decoded.tokenVersion ?? 0) !== (user.tokenVersion || 0)
+  )
+    return null;
+  return user;
+}
 const protect = async (req, res, next) => {
-  let token;
-
-  if (req.headers.authorization?.startsWith('Bearer ')) {
-    token = req.headers.authorization.split(' ')[1];
-  } else if (req.cookies?.token) {
-    token = req.cookies.token;
-  }
-
-  if (!token) {
-    return res.status(401).json({
-      success: false,
-      message: 'Not authorized. Please log in.',
-    });
-  }
-
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-password');
-    if (!req.user || !req.user.isActive) {
+    req.user = await authenticate(req);
+    if (!req.user)
       return res.status(401).json({
         success: false,
-        message: 'Account not found or deactivated.',
+        message: 'Invalid, expired or revoked session',
       });
-    }
     next();
-  } catch (err) {
-    if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid or expired token.',
-      });
-    }
-    return res.status(503).json({
-      success: false,
-      message: 'Authentication service temporarily unavailable. Please retry.',
-    });
+  } catch (error) {
+    if (/Token|jwt/i.test(error.name))
+      return res
+        .status(401)
+        .json({ success: false, message: 'Invalid or expired token' });
+    next(error);
   }
 };
-
-// Optional auth — attaches user if token present, but doesn't block if missing
 const optionalAuth = async (req, res, next) => {
-  let token;
-  if (req.headers.authorization?.startsWith('Bearer ')) {
-    token = req.headers.authorization.split(' ')[1];
-  }
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      req.user = await User.findById(decoded.id).select('-password');
-    } catch (_e) {
-      req.user = null;
-    }
+  try {
+    req.user = await authenticate(req);
+  } catch {
+    req.user = null;
   }
   next();
 };
-
 module.exports = { protect, optionalAuth };

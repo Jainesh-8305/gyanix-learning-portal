@@ -8,7 +8,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Mail, Lock, Eye, EyeOff, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  Sparkles,
+  ArrowRight,
+  ShieldCheck,
+} from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
 import AstroMascot from '@/components/ui/AstroMascot';
@@ -69,7 +77,12 @@ function StarfieldBackground() {
     };
   }, []);
 
-  return <canvas ref={canvasRef} className="fixed inset-0 w-full h-full pointer-events-none z-0" />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="fixed inset-0 w-full h-full pointer-events-none z-0"
+    />
+  );
 }
 
 export default function LoginPage() {
@@ -87,7 +100,18 @@ export default function LoginPage() {
         instructor: '/dashboard/instructor',
         student: '/dashboard/student',
       };
-      router.replace(redirectMap[user.role] || '/dashboard/student');
+      const target = new URLSearchParams(window.location.search).get(
+        'redirect',
+      );
+      router.replace(
+        target?.startsWith('/') &&
+          !target.startsWith('//') &&
+          !target.includes('\\') &&
+          !target.startsWith('/login') &&
+          !target.startsWith('/register')
+          ? target
+          : redirectMap[user.role] || '/dashboard/student',
+      );
     }
   }, [isAuthenticated, user, router]);
 
@@ -99,6 +123,20 @@ export default function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  const destination = (role: string) => {
+    const target = new URLSearchParams(window.location.search).get('redirect');
+    return target?.startsWith('/') &&
+      !target.startsWith('//') &&
+      !target.includes('\\') &&
+      !target.startsWith('/login') &&
+      !target.startsWith('/register')
+      ? target
+      : {
+          admin: '/dashboard/admin',
+          instructor: '/dashboard/instructor',
+          student: '/dashboard/student',
+        }[role] || '/dashboard/student';
+  };
   const onSubmit = async (data: LoginForm) => {
     setLoading(true);
     try {
@@ -106,30 +144,37 @@ export default function LoginPage() {
       const { user, token } = res.data;
       setAuth(user, token);
       toast.success(`Welcome back, ${user.name}!`);
-      const redirectMap: Record<string, string> = {
-        admin: '/dashboard/admin',
-        instructor: '/dashboard/instructor',
-        student: '/dashboard/student',
-      };
-      router.push(redirectMap[user.role] || '/dashboard/student');
+      router.push(destination(user.role));
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Login failed. Please check your credentials.');
+      toast.error(
+        error.response?.data?.message ||
+          'Login failed. Please check your credentials.',
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative bg-[#05060f] overflow-hidden" suppressHydrationWarning>
+    <div
+      className="min-h-[calc(100vh-4rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8 relative bg-[#05060f] overflow-hidden"
+      suppressHydrationWarning
+    >
       <StarfieldBackground />
 
       {/* Ambient background glow orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-teal-500/15 rounded-full blur-3xl pointer-events-none animate-pulse-slow" />
 
-      <div className="relative z-10 w-full max-w-md mx-auto" suppressHydrationWarning>
+      <div
+        className="relative z-10 w-full max-w-md mx-auto"
+        suppressHydrationWarning
+      >
         {/* Main Glass Card */}
-        <div className="glass-card rounded-3xl p-8 sm:p-10 shadow-2xl border border-indigo-500/25" suppressHydrationWarning>
+        <div
+          className="glass-card rounded-3xl p-8 sm:p-10 shadow-2xl border border-indigo-500/25"
+          suppressHydrationWarning
+        >
           {/* Card Header */}
           <div className="text-center mb-8">
             <div className="flex justify-center mb-3">
@@ -149,18 +194,32 @@ export default function LoginPage() {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" suppressHydrationWarning>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-6"
+            suppressHydrationWarning
+          >
             {/* Email Field */}
             <div suppressHydrationWarning>
-              <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
+              <label
+                htmlFor="login-email"
+                className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2"
+              >
                 Email Address
               </label>
-              <div className="relative flex items-center" suppressHydrationWarning>
+              <div
+                className="relative flex items-center"
+                suppressHydrationWarning
+              >
                 <div className="absolute left-4 pointer-events-none text-indigo-300/50">
                   <Mail className="w-5 h-5" />
                 </div>
                 <input
                   {...register('email')}
+                  id="login-email"
+                  autoComplete="email"
+                  aria-describedby="login-email-error"
+                  aria-invalid={!!errors.email}
                   type="email"
                   placeholder="scholar@aetheris.edu"
                   suppressHydrationWarning
@@ -168,14 +227,23 @@ export default function LoginPage() {
                 />
               </div>
               {errors.email && (
-                <p className="text-red-400 text-xs mt-2 pl-1 font-medium">{errors.email.message}</p>
+                <p
+                  id="login-email-error"
+                  role="alert"
+                  className="text-red-400 text-xs mt-2 pl-1 font-medium"
+                >
+                  {errors.email.message}
+                </p>
               )}
             </div>
 
             {/* Password Field */}
             <div suppressHydrationWarning>
               <div className="flex justify-between items-center mb-2">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80">
+                <label
+                  htmlFor="login-password"
+                  className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80"
+                >
                   Password
                 </label>
                 <Link
@@ -185,12 +253,19 @@ export default function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative flex items-center" suppressHydrationWarning>
+              <div
+                className="relative flex items-center"
+                suppressHydrationWarning
+              >
                 <div className="absolute left-4 pointer-events-none text-indigo-300/50">
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
                   {...register('password')}
+                  id="login-password"
+                  autoComplete="current-password"
+                  aria-describedby="login-password-error"
+                  aria-invalid={!!errors.password}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••••••"
                   suppressHydrationWarning
@@ -202,14 +277,26 @@ export default function LoginPage() {
                     suppressHydrationWarning
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-4 text-indigo-300/50 hover:text-indigo-200 transition-colors focus:outline-none cursor-pointer"
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={
+                      showPassword ? 'Hide password' : 'Show password'
+                    }
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 )}
               </div>
               {errors.password && (
-                <p className="text-red-400 text-xs mt-2 pl-1 font-medium">{errors.password.message}</p>
+                <p
+                  id="login-password-error"
+                  role="alert"
+                  className="text-red-400 text-xs mt-2 pl-1 font-medium"
+                >
+                  {errors.password.message}
+                </p>
               )}
             </div>
 

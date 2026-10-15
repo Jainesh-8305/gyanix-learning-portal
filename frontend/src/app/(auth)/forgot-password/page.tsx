@@ -7,7 +7,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Mail, ArrowRight, ArrowLeft, ShieldCheck, CheckCircle2, KeyRound } from 'lucide-react';
+import {
+  Mail,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
+  KeyRound,
+} from 'lucide-react';
 import api from '@/lib/api';
 import AstroMascot from '@/components/ui/AstroMascot';
 
@@ -21,7 +27,6 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
-  const [devResetUrl, setDevResetUrl] = useState<string | null>(null);
 
   const {
     register,
@@ -34,15 +39,15 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: FormValues) => {
     setLoading(true);
     try {
-      const res = await api.post('/auth/forgot-password', { email: data.email });
+      await api.post('/auth/forgot-password', { email: data.email });
       setSubmittedEmail(data.email);
       setSubmitted(true);
-      if (res.data.resetUrl) {
-        setDevResetUrl(res.data.resetUrl);
-      }
-      toast.success('Password reset link generated successfully!');
+
+      toast.success('Reset instructions requested.');
     } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to request password reset');
+      toast.error(
+        error.response?.data?.message || 'Failed to request password reset',
+      );
     } finally {
       setLoading(false);
     }
@@ -69,7 +74,8 @@ export default function ForgotPasswordPage() {
               Reset Password
             </h1>
             <p className="text-indigo-200/70 text-xs sm:text-sm">
-              Enter your email and we&apos;ll send you a secure password reset link.
+              Enter your email and we&apos;ll send you a secure password reset
+              link.
             </p>
           </div>
 
@@ -77,25 +83,16 @@ export default function ForgotPasswordPage() {
             <div className="space-y-6 text-center">
               <div className="p-5 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-300 space-y-2">
                 <CheckCircle2 className="w-8 h-8 mx-auto text-teal-400" />
-                <h3 className="text-base font-bold text-white">Reset Link Sent</h3>
+                <h3 className="text-base font-bold text-white">
+                  Request Received
+                </h3>
                 <p className="text-xs text-indigo-200/80 leading-relaxed">
-                  We sent a verified reset link to <strong className="text-white">{submittedEmail}</strong>. Check your inbox or click below.
+                  If an active account exists for{' '}
+                  <strong className="text-white">{submittedEmail}</strong>.
+                  check your inbox for reset instructions. Delivery requires a
+                  configured mail service.
                 </p>
               </div>
-
-              {devResetUrl && (
-                <div className="p-4 rounded-xl bg-indigo-500/15 border border-indigo-500/30 text-left space-y-2">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-teal-300">
-                    Direct Reset Link
-                  </p>
-                  <Link
-                    href={devResetUrl}
-                    className="block py-2.5 px-4 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold text-center transition"
-                  >
-                    Open Password Reset Page →
-                  </Link>
-                </div>
-              )}
 
               <div className="pt-2">
                 <Link
@@ -108,7 +105,11 @@ export default function ForgotPasswordPage() {
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" suppressHydrationWarning>
+            <form
+              onSubmit={handleSubmit(onSubmit)}
+              className="space-y-6"
+              suppressHydrationWarning
+            >
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2">
                   Account Email Address
@@ -119,6 +120,8 @@ export default function ForgotPasswordPage() {
                   </div>
                   <input
                     {...register('email')}
+                    id="forgot-password-email"
+                    aria-label="email"
                     type="email"
                     placeholder="scholar@gyanix.edu"
                     suppressHydrationWarning
@@ -126,7 +129,9 @@ export default function ForgotPasswordPage() {
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-red-400 text-xs mt-2 pl-1 font-medium">{errors.email.message}</p>
+                  <p className="text-red-400 text-xs mt-2 pl-1 font-medium">
+                    {errors.email.message}
+                  </p>
                 )}
               </div>
 

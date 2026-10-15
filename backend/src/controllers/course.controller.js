@@ -1,165 +1,193 @@
-// backend/src/controllers/course.controller.js
-const Course = require('../models/Course');
-const Enrollment = require('../models/Enrollment');
-
-// ─── @GET /api/courses ────────────────────────────────────────
-// Public: Get all published courses with search & filter
+const Course = require("../models/Course");
+const Enrollment = require("../models/Enrollment");
+const { fail, owned, pagination } = require("../utils/http");
+const editable = [
+  "title",
+  "description",
+  "shortDescription",
+  "category",
+  "level",
+  "language",
+  "thumbnail",
+  "previewVideo",
+  "sections",
+  "tags",
+  "requirements",
+  "learningOutcomes",
+  "targetAudience",
+];
+const fields = (body) => {
+  if (
+    ["price", "discountPrice", "paymentId", "amountPaid"].some(
+      (key) => key in body,
+    )
+  )
+    throw fail(
+      400,
+      "Courses are free. Pricing and payment fields are not supported.",
+    );
+  return Object.fromEntries(
+    editable.filter((k) => body[k] !== undefined).map((k) => [k, body[k]]),
+  );
+};
 const getCourses = async (req, res, next) => {
   try {
-    const {
-      search, category, level, minPrice, maxPrice, status,
-      sort = '-createdAt', page = 1, limit = 12,
-    } = req.query;
-
-    const filter = {};
-
-    // Role-based status filtering
-    if (req.user?.role === 'admin') {
-      if (status) filter.status = status;
-      // No status filter = admin sees everything
-    } else if (req.user?.role === 'instructor') {
-      // Instructors browsing the catalog see published only
-      filter.status = 'published';
-    } else {
-      filter.status = 'published';
-    }
-
+    const { page, limit } = pagination(req.query);
+    if (req.query.minPrice !== undefined || req.query.maxPrice !== undefined)
+      throw fail(
+        400,
+        "Pricing filters are not supported; all courses are free.",
+      );
+    const { search, category, level, status, sort = "-createdAt" } = req.query;
+    if (!["-createdAt", "-rating", "-totalStudents"].includes(sort))
+      throw fail(400, "Unsupported sort");
+    const filter =
+      req.user?.role === "admin"
+        ? status
+          ? { status }
+          : {}
+        : { status: "published" };
     if (category) filter.category = category;
     if (level) filter.level = level;
-    if (minPrice || maxPrice) {
-      filter.price = {};
-      if (minPrice) filter.price.$gte = Number(minPrice);
-      if (maxPrice) filter.price.$lte = Number(maxPrice);
+    if (search) {
+      if (typeof search !== "string" || search.length > 200)
+        throw fail(400, "Search is too long");
+      filter.$text = { $search: search };
     }
-    if (search) filter.$text = { $search: search };
-
     const total = await Course.countDocuments(filter);
-    const courses = await Course.find(filter)
-      .populate('instructor', 'name avatar rating')
+    const data = await Course.find(filter)
+      .populate("instructor", "name avatar rating")
       .sort(sort)
       .skip((page - 1) * limit)
-      .limit(Number(limit))
-      .select('-sections');
-
+      .limit(limit)
+      .select(
+        "-sections -resourceHub -classroomCode -adminFeedback -price -discountPrice -totalRevenue",
+      );
     res.json({
       success: true,
-      data: courses,
-      pagination: {
-        total,
-        page: Number(page),
-        pages: Math.ceil(total / limit),
-        limit: Number(limit),
-      },
+      data,
+      pagination: { total, page, pages: Math.ceil(total / limit), limit },
     });
-  } catch (error) {
-    next(error);
+  } catch (e) {
+    next(e);
   }
 };
-// ─── @GET /api/courses/:id ────────────────────────────────────
 const getCourse = async (req, res, next) => {
   try {
-    const course = await Course.findById(req.params.id)
-      .populate('instructor', 'name avatar bio rating totalStudents');
-
-    if (!course) {
-      return res.status(404).json({ success: false, message: 'Course not found' });
-    }
-
-    // For non-enrolled users, hide video URLs (only show free lessons)
-    const courseData = course.toObject();
-    const isEnrolled = req.user
+    const course = await Course.findById(req.params.id).populate(
+      "instructor",
+      "name avatar bio rating",
+    );
+    if (
+      !course ||
+      (course.status !== "published" && (!req.user || !owned(course, req.user)))
+    )
+      throw fail(404, "Course not found");
+    const enrollment = req.user
       ? await Enrollment.exists({ student: req.user._id, course: course._id })
-      : false;
-
-    if (!isEnrolled) {
-      courseData.sections = courseData.sections?.map(section => ({
-        ...section,
-        lessons: section.lessons?.map(lesson => ({
-          ...lesson,
-          videoUrl: lesson.isFree ? lesson.videoUrl : null,
+      : null;
+    const data = course.toObject();
+    delete data.price;
+    delete data.discountPrice;
+    delete data.totalRevenue;
+    const editor = req.user && owned(course, req.user);
+    if (!enrollment && !editor) {
+      data.sections = data.sections.map((s) => ({
+        ...s,
+        lessons: s.lessons.map((l) => ({
+          ...l,
+          hasVideo: Boolean(l.videoUrl),
+          videoUrl: l.isFree ? l.videoUrl : null,
+          resources: [],
         })),
       }));
+      delete data.resourceHub;
+      delete data.classroomCode;
     }
-
-    res.json({ success: true, data: courseData, isEnrolled: !!isEnrolled });
-  } catch (error) {
-    next(error);
+    if (!editor) delete data.adminFeedback;
+    res.json({ success: true, data, isEnrolled: !!enrollment });
+  } catch (e) {
+    next(e);
   }
 };
-
-// ─── @POST /api/courses ───────────────────────────────────────
-// Instructor only
 const createCourse = async (req, res, next) => {
   try {
-    const course = await Course.create({
-      ...req.body,
+    const data = await Course.create({
+      ...fields(req.body),
       instructor: req.user._id,
-      status: 'draft',
+      status: "draft",
     });
-
-    res.status(201).json({ success: true, data: course });
-  } catch (error) {
-    next(error);
+    res.status(201).json({ success: true, data });
+  } catch (e) {
+    next(e);
   }
 };
-
-// ─── @PUT /api/courses/:id ────────────────────────────────────
 const updateCourse = async (req, res, next) => {
   try {
     const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
-
-    // Ownership check (instructors can only edit their own courses)
-    if (course.instructor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-
-    const updated = await Course.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    res.json({ success: true, data: updated });
-  } catch (error) {
-    next(error);
+    if (!course) throw fail(404, "Course not found");
+    if (!owned(course, req.user)) throw fail(403, "Not authorized");
+    if (
+      [
+        "status",
+        "adminFeedback",
+        "instructor",
+        "totalStudents",
+        "totalRevenue",
+        "rating",
+        "publishedAt",
+        "classroomCode",
+      ].some((k) => k in req.body)
+    )
+      throw fail(400, "Protected course fields cannot be updated here");
+    Object.assign(course, fields(req.body));
+    if (req.user.role !== "admin" && course.status === "published")
+      course.status = "draft";
+    await course.save();
+    res.json({ success: true, data: course });
+  } catch (e) {
+    next(e);
   }
 };
-
-// ─── @POST /api/courses/:id/submit ───────────────────────────
-// Instructor submits course for admin review
 const submitCourseForReview = async (req, res, next) => {
   try {
-    const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
-
-    if (course.instructor.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-
-    course.status = 'pending';
-    await course.save();
-
-    res.json({ success: true, message: 'Course submitted for review', data: course });
-  } catch (error) {
-    next(error);
+    const c = await Course.findById(req.params.id);
+    if (!c) throw fail(404, "Course not found");
+    if (!owned(c, req.user)) throw fail(403, "Not authorized");
+    if (
+      !c.sections.length ||
+      c.sections.some(
+        (s) => !s.lessons.length || s.lessons.some((l) => !l.videoUrl),
+      )
+    )
+      throw fail(400, "Add a video URL for every lesson before review");
+    c.status = "pending";
+    await c.save();
+    res.json({ success: true, data: c, message: "Submitted for review" });
+  } catch (e) {
+    next(e);
   }
 };
-
-// ─── @DELETE /api/courses/:id ─────────────────────────────────
 const deleteCourse = async (req, res, next) => {
   try {
-    const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ success: false, message: 'Course not found' });
-
-    if (course.instructor.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
-      return res.status(403).json({ success: false, message: 'Not authorized' });
-    }
-
-    await course.deleteOne();
-    res.json({ success: true, message: 'Course deleted' });
-  } catch (error) {
-    next(error);
+    const c = await Course.findById(req.params.id);
+    if (!c) throw fail(404, "Course not found");
+    if (!owned(c, req.user)) throw fail(403, "Not authorized");
+    c.status = "archived";
+    await c.save();
+    res.json({
+      success: true,
+      message: "Course archived; learning records retained",
+    });
+  } catch (e) {
+    next(e);
   }
 };
-
-module.exports = { getCourses, getCourse, createCourse, updateCourse, submitCourseForReview, deleteCourse };
+module.exports = {
+  getCourses,
+  getCourse,
+  createCourse,
+  updateCourse,
+  submitCourseForReview,
+  deleteCourse,
+};

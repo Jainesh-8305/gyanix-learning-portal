@@ -2,7 +2,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
-  role: 'student' | 'instructor' | 'admin';
+  role: "student" | "instructor" | "admin";
   avatar?: string;
   bio?: string;
   rating?: number;
@@ -19,6 +19,7 @@ export interface Lesson {
   title: string;
   description?: string;
   videoUrl?: string;
+  hasVideo?: boolean;
   videoDuration?: number;
   order: number;
   isFree: boolean;
@@ -38,9 +39,7 @@ export interface Course {
   shortDescription?: string;
   instructor: User;
   category: string;
-  level: 'beginner' | 'intermediate' | 'advanced';
-  price: number;
-  discountPrice?: number;
+  level: "beginner" | "intermediate" | "advanced";
   thumbnail?: string;
   sections?: Section[];
   tags: string[];
@@ -51,7 +50,8 @@ export interface Course {
   totalDuration?: number;
   rating: number;
   totalRatings: number;
-  status: 'draft' | 'pending' | 'published' | 'rejected' | 'archived' | 'hidden';
+  status:
+    "draft" | "pending" | "published" | "rejected" | "archived" | "hidden";
   adminFeedback?: string;
   publishedAt?: string;
   createdAt: string;
@@ -68,7 +68,6 @@ export interface Enrollment {
     completedAt: string;
   }>;
   lastAccessedAt: string;
-  amountPaid: number;
   /** Certificate document _id — present once the certificate has been generated */
   certificate?: string;
 }
@@ -76,11 +75,11 @@ export interface Enrollment {
 export interface QuizQuestion {
   _id: string;
   question: string;
-  type: 'multiple-choice' | 'true-false' | 'short-answer';
+  type: "multiple-choice" | "true-false" | "short-answer";
   options?: string[];
   correctAnswer?: string;
   explanation?: string;
-  difficulty: 'easy' | 'medium' | 'hard';
+  difficulty: "easy" | "medium" | "hard";
   points: number;
 }
 

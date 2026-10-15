@@ -14,10 +14,10 @@ interface StudentGoalCardProps {
 }
 
 export default function StudentGoalCard({
-  completedToday = 3,
+  completedToday = 0,
   dailyTarget = 4,
   nextLessonLink = '/courses',
-  nextLessonTitle = 'Complete 1 more lesson to reach your goal!',
+  nextLessonTitle = 'Choose a lesson and start studying',
   imageSrc = '/images/gyanix_cute_cosmic_ai_orb.jpg',
 }: StudentGoalCardProps) {
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -30,7 +30,10 @@ export default function StudentGoalCard({
     year: 'numeric',
   });
 
-  const percentage = Math.min(100, Math.round((completedToday / dailyTarget) * 100));
+  const percentage = Math.min(
+    100,
+    Math.round((completedToday / dailyTarget) * 100),
+  );
   const r = 32;
   const circ = 2 * Math.PI * r;
   const strokeOffset = circ - (percentage / 100) * circ;
@@ -62,7 +65,12 @@ export default function StudentGoalCard({
         <div className="flex items-center justify-between gap-3">
           {/* Circular Progress Gauge */}
           <div className="relative flex items-center justify-center shrink-0">
-            <svg width="68" height="68" viewBox="0 0 80 80" className="-rotate-90">
+            <svg
+              width="68"
+              height="68"
+              viewBox="0 0 80 80"
+              className="-rotate-90"
+            >
               <circle
                 cx="40"
                 cy="40"
@@ -94,7 +102,9 @@ export default function StudentGoalCard({
               <span className="text-sm font-black text-white tracking-tight">
                 {completedToday}/{dailyTarget}
               </span>
-              <span className="text-[8px] font-bold text-cyan-300 uppercase">Goal</span>
+              <span className="text-[8px] font-bold text-cyan-300 uppercase">
+                Goal
+              </span>
             </div>
           </div>
 
@@ -146,7 +156,7 @@ export default function StudentGoalCard({
           <p className="text-[10px] text-indigo-200/70 truncate">
             {completedToday >= dailyTarget
               ? 'Trajectory optimal!'
-              : 'You are on a 3-day streak!'}
+              : `${completedToday} lessons completed today`}
           </p>
         </div>
 

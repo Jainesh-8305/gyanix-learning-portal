@@ -34,7 +34,6 @@ desktop.ini
 *.swo
 
 # Docker
-.dockerignore
 
 # Coverage
 coverage/
@@ -50,3 +49,9 @@ coverage/
 .vercel
 .netlify
 .env*
+!.env.example
+
+# Private local QA state, credentials and original evidence
+.audit-runtime/
+audit/
+frontend/public/qa-lesson.mp4

@@ -44,7 +44,9 @@ function LiveSpaceCosmos() {
           vx: (Math.random() - 0.5) * 8,
           vy: (Math.random() - 0.5) * 8,
           radius: Math.random() * 2.5 + 1,
-          color: ['#38bdf8', '#2dd4bf', '#fbbf24', '#f472b6', '#a78bfa'][Math.floor(Math.random() * 5)],
+          color: ['#38bdf8', '#2dd4bf', '#fbbf24', '#f472b6', '#a78bfa'][
+            Math.floor(Math.random() * 5)
+          ],
           alpha: 1,
           decay: Math.random() * 0.02 + 0.015,
         });
@@ -67,7 +69,14 @@ function LiveSpaceCosmos() {
       color: string;
     }
 
-    const starColors = ['#ffffff', '#c7d2fe', '#bae6fd', '#fef08a', '#fbcfe8', '#a7f3d0'];
+    const starColors = [
+      '#ffffff',
+      '#c7d2fe',
+      '#bae6fd',
+      '#fef08a',
+      '#fbcfe8',
+      '#a7f3d0',
+    ];
     const stars: Star[] = Array.from({ length: 220 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
@@ -117,7 +126,14 @@ function LiveSpaceCosmos() {
 
     // ── 4. Roaming Roaming Astronauts & Objects (Physics Simulation) ──
     interface RoamingObject {
-      type: 'scholar-astro' | 'spacewalker' | 'rocket' | 'saturn' | 'earth' | 'notebook' | 'pencil';
+      type:
+        | 'scholar-astro'
+        | 'spacewalker'
+        | 'rocket'
+        | 'saturn'
+        | 'earth'
+        | 'notebook'
+        | 'pencil';
       x: number;
       y: number;
       vx: number;
@@ -226,7 +242,12 @@ function LiveSpaceCosmos() {
     // ── Vector Drawing Helpers for Roaming Entities ───────────────
 
     // Draw Scholar Astronaut with Glowing Book on Earth
-    function drawScholarAstro(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) {
+    function drawScholarAstro(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+    ) {
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(scale, scale);
@@ -355,7 +376,12 @@ function LiveSpaceCosmos() {
     }
 
     // Draw Spacewalker Waving in Zero-G
-    function drawSpacewalker(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) {
+    function drawSpacewalker(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+    ) {
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(scale, scale);
@@ -415,7 +441,13 @@ function LiveSpaceCosmos() {
     }
 
     // Draw Cruising Retro Space Rocket with Fire Trails
-    function drawRocket(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, rotation: number) {
+    function drawRocket(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+      rotation: number,
+    ) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotation);
@@ -480,7 +512,13 @@ function LiveSpaceCosmos() {
     }
 
     // Draw Saturn with Rings
-    function drawSaturn(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, rotation: number) {
+    function drawSaturn(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+      rotation: number,
+    ) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotation);
@@ -521,7 +559,12 @@ function LiveSpaceCosmos() {
     }
 
     // Draw Earth Globe
-    function drawEarth(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number) {
+    function drawEarth(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+    ) {
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(scale, scale);
@@ -551,7 +594,13 @@ function LiveSpaceCosmos() {
     }
 
     // Draw Floating Spiral Notebook
-    function drawNotebook(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, rotation: number) {
+    function drawNotebook(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+      rotation: number,
+    ) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotation);
@@ -583,7 +632,13 @@ function LiveSpaceCosmos() {
     }
 
     // Draw Floating Neon Pencil
-    function drawPencil(ctx: CanvasRenderingContext2D, x: number, y: number, scale: number, rotation: number) {
+    function drawPencil(
+      ctx: CanvasRenderingContext2D,
+      x: number,
+      y: number,
+      scale: number,
+      rotation: number,
+    ) {
       ctx.save();
       ctx.translate(x, y);
       ctx.rotate(rotation);
@@ -613,13 +668,27 @@ function LiveSpaceCosmos() {
       ctx.fillRect(0, 0, width, height);
 
       // Deep Cosmic Nebula Light Pockets
-      const neb1 = ctx.createRadialGradient(width * 0.2, height * 0.3, 20, width * 0.2, height * 0.3, 400);
+      const neb1 = ctx.createRadialGradient(
+        width * 0.2,
+        height * 0.3,
+        20,
+        width * 0.2,
+        height * 0.3,
+        400,
+      );
       neb1.addColorStop(0, 'rgba(99, 102, 241, 0.07)');
       neb1.addColorStop(1, 'rgba(99, 102, 241, 0)');
       ctx.fillStyle = neb1;
       ctx.fillRect(0, 0, width, height);
 
-      const neb2 = ctx.createRadialGradient(width * 0.8, height * 0.7, 20, width * 0.8, height * 0.7, 450);
+      const neb2 = ctx.createRadialGradient(
+        width * 0.8,
+        height * 0.7,
+        20,
+        width * 0.8,
+        height * 0.7,
+        450,
+      );
       neb2.addColorStop(0, 'rgba(45, 212, 191, 0.06)');
       neb2.addColorStop(1, 'rgba(45, 212, 191, 0)');
       ctx.fillStyle = neb2;
@@ -637,7 +706,13 @@ function LiveSpaceCosmos() {
         ctx.fillStyle = star.color;
         ctx.globalAlpha = Math.max(0.1, Math.min(1, twinkle));
         ctx.beginPath();
-        ctx.arc(star.x + parallaxX, star.y + parallaxY, star.radius, 0, Math.PI * 2);
+        ctx.arc(
+          star.x + parallaxX,
+          star.y + parallaxY,
+          star.radius,
+          0,
+          Math.PI * 2,
+        );
         ctx.fill();
       });
       ctx.globalAlpha = 1;

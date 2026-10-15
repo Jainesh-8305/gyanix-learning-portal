@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { useDialogFocus } from '@/hooks/useDialogFocus';
 import { X, KeyRound, Sparkles, CheckCircle2, ArrowRight } from 'lucide-react';
 import api from '@/lib/api';
+import type { Course } from '@/types';
+import { apiError } from '@/lib/errors';
 import toast from 'react-hot-toast';
 
 interface JoinBatchModalProps {
@@ -11,10 +14,17 @@ interface JoinBatchModalProps {
   onJoined: () => void;
 }
 
-export default function JoinBatchModal({ isOpen, onClose, onJoined }: JoinBatchModalProps) {
+export default function JoinBatchModal({
+  isOpen,
+  onClose,
+  onJoined,
+}: JoinBatchModalProps) {
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, onClose, isOpen);
+
   const [code, setCode] = useState('');
   const [loading, setLoading] = useState(false);
-  const [joinedCourse, setJoinedCourse] = useState<any | null>(null);
+  const [joinedCourse, setJoinedCourse] = useState<Course | null>(null);
 
   if (!isOpen) return null;
 
@@ -27,16 +37,22 @@ export default function JoinBatchModal({ isOpen, onClose, onJoined }: JoinBatchM
 
     setLoading(true);
     try {
-      const res = await api.post('/courses/join-batch', { classroomCode: code.trim().toUpperCase() });
+      const res = await api.post('/courses/join-batch', {
+        classroomCode: code.trim().toUpperCase(),
+      });
       if (res.data.alreadyEnrolled) {
         toast('You are already enrolled in this batch!', { icon: 'ℹ️' });
       } else {
-        toast.success(res.data.message || 'Successfully joined classroom batch! 🚀');
+        toast.success(
+          res.data.message || 'Successfully joined classroom batch! 🚀',
+        );
       }
-      setJoinedCourse(res.data.data?.course || res.data.data);
+      setJoinedCourse(
+        res.data.course || res.data.data?.course || res.data.data,
+      );
       onJoined();
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Invalid or expired classroom code');
+    } catch (err: unknown) {
+      toast.error(apiError(err, 'Invalid or expired classroom code'));
     } finally {
       setLoading(false);
     }
@@ -49,10 +65,14 @@ export default function JoinBatchModal({ isOpen, onClose, onJoined }: JoinBatchM
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+    <div
+      ref={dialogRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200"
+    >
       <div className="relative w-full max-w-md bg-[#0a0f24] border border-teal-500/30 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-teal-500/10">
         {/* Close Button */}
         <button
+          aria-label="Close dialog"
           onClick={handleReset}
           className="absolute top-5 right-5 p-2 rounded-xl text-indigo-300/60 hover:text-white hover:bg-white/5 transition-colors"
         >
@@ -67,11 +87,16 @@ export default function JoinBatchModal({ isOpen, onClose, onJoined }: JoinBatchM
             <div>
               <h3 className="text-xl font-bold text-white">Batch Unlocked!</h3>
               <p className="text-sm text-teal-300/80 mt-1">
-                You have successfully joined <span className="text-white font-semibold">{joinedCourse.title}</span>.
+                You have successfully joined{' '}
+                <span className="text-white font-semibold">
+                  {joinedCourse.title}
+                </span>
+                .
               </p>
             </div>
             <p className="text-xs text-indigo-300/60">
-              All instructor course modules, AI assignments, and study materials are now available in your dashboard.
+              All instructor course modules, AI assignments, and study materials
+              are now available in your dashboard.
             </p>
             <button
               onClick={handleReset}
@@ -112,7 +137,8 @@ export default function JoinBatchModal({ isOpen, onClose, onJoined }: JoinBatchM
                 className="w-full px-4 py-3.5 bg-black/50 border border-teal-500/40 rounded-xl text-white placeholder-indigo-300/30 font-mono tracking-widest text-center text-lg uppercase focus:outline-none focus:border-teal-400 focus:ring-1 focus:ring-teal-400"
               />
               <p className="text-[11px] text-indigo-300/50 text-center">
-                Ask your faculty or mentor for their 6-character course batch code.
+                Ask your faculty or mentor for their 10-character course batch
+                code.
               </p>
             </div>
 

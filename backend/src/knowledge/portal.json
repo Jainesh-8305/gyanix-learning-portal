@@ -1,0 +1,206 @@
+[
+  {
+    "id": "navigation",
+    "title": "Finding your workspace",
+    "roles": ["student", "instructor", "admin"],
+    "url": "/help#navigation",
+    "text": "Open Dashboard in the top navigation. Students have Overview, My courses, Study tools, Assignments, Quizzes, Certificates and Progress. Instructors have Overview, Courses, Students, Assignment studio, Batch quizzes and Reviews. Administrators manage courses, users and enrollments. Use the floating assistant in the bottom-right corner on signed-in pages.",
+    "translations": {
+      "hi": "ऊपर Dashboard से अपने खाते का कार्यक्षेत्र खोलें। विद्यार्थी पाठ्यक्रम, अध्ययन साधन, असाइनमेंट, क्विज़, प्रमाणपत्र और प्रगति देख सकते हैं। दाईं ओर नीचे के चैट आइकन से सहायक खोलें।",
+      "gu": "ઉપર Dashboard પરથી તમારા ખાતાનું કાર્યક્ષેત્ર ખોલો. વિદ્યાર્થી અભ્યાસક્રમો, અભ્યાસ સાધનો, અસાઇનમેન્ટ, ક્વિઝ, પ્રમાણપત્રો અને પ્રગતિ જોઈ શકે છે. નીચે જમણી બાજુના ચેટ ચિહ્નથી સહાયક ખોલો."
+    },
+    "keywords": "dashboard navigation menu page feature डैशबोर्ड सुविधा कहाँ विकल्प ડેશબોર્ડ સુવિધા ક્યાં"
+  },
+  {
+    "id": "enrollment",
+    "title": "Enroll in a course",
+    "roles": ["student"],
+    "url": "/courses",
+    "text": "All published courses are free. Open Browse courses, choose a course and select Enroll for free. Sign in as a student first. You can also choose Join classroom on the student dashboard and enter the classroom code shared by your instructor. A code cannot grant access to a draft, hidden or archived course. There is no checkout or payment gateway.",
+    "translations": {
+      "hi": "सभी प्रकाशित पाठ्यक्रम निःशुल्क हैं। Browse courses खोलें, पाठ्यक्रम चुनें और Enroll for free दबाएँ। पहले विद्यार्थी खाते से प्रवेश करें। Join classroom में शिक्षक का कोड डालकर भी जुड़ सकते हैं। ड्राफ्ट या छिपे पाठ्यक्रम उपलब्ध नहीं हैं।",
+      "gu": "બધા પ્રકાશિત અભ્યાસક્રમો નિઃશુલ્ક છે. Browse courses માંથી અભ્યાસક્રમ પસંદ કરો અને Enroll for free દબાવો. પહેલાં વિદ્યાર્થી તરીકે પ્રવેશ કરો. Join classroom માં શિક્ષકનો કોડ નાખીને પણ જોડાઈ શકાય છે. ડ્રાફ્ટ અથવા છુપાયેલા અભ્યાસક્રમો ઉપલબ્ધ નથી."
+    },
+    "keywords": "enroll join batch classroom free code payment register दाखिला नामांकन जुड़ कोड निःशुल्क વર્ગ જોડાઓ કોડ નોંધણી મફત"
+  },
+  {
+    "id": "learning",
+    "title": "Watch lessons and save progress",
+    "roles": ["student"],
+    "url": "/dashboard/student?tab=courses",
+    "text": "My courses lists your enrollments. Continue learning opens the lecture player. Open lesson navigation to choose a lesson, then close it to use the full player width. Watch at least 80% before selecting Mark Complete. The server records elapsed watch sessions; seeking to the end alone does not complete a lesson. An unavailable video URL must be corrected by its instructor.",
+    "translations": {
+      "hi": "My courses में Continue learning से पाठ खोलें। पाठ बदलने के लिए lesson navigation खोलें। कम से कम 80% वीडियो देखने के बाद Mark Complete दबाएँ। केवल वीडियो अंत तक खिसकाने से पाठ पूरा नहीं होता।",
+      "gu": "My courses માં Continue learning થી પાઠ ખોલો. પાઠ બદલવા lesson navigation ખોલો. ઓછામાં ઓછો 80% વિડિયો જોયા પછી Mark Complete દબાવો. માત્ર વિડિયોને અંત સુધી આગળ કરવાથી પાઠ પૂરો થતો નથી."
+    },
+    "keywords": "lesson video progress complete watch सीख वीडियो पाठ प्रगति પૂર્ણ વિડિયો પાઠ પ્રગતિ"
+  },
+  {
+    "id": "certificates",
+    "title": "Unlock an assessment and certificate",
+    "roles": ["student"],
+    "url": "/dashboard/student?tab=certificates",
+    "text": "Complete all saved video lessons to unlock the course assessment. The server owns questions, answer keys, deadlines and attempt counts. Passing the required score after completing an enrolled published course creates a project course-completion certificate. View it in Certificates and use its download or public verification page. These are project certificates, not external academic accreditation.",
+    "translations": {
+      "hi": "सभी वीडियो पाठ पूरे करने पर पाठ्यक्रम की परीक्षा खुलेगी। समय और प्रयास सीमा सर्वर तय करता है। निर्धारित अंक पाने पर इस परियोजना का पाठ्यक्रम-पूर्णता प्रमाणपत्र मिलता है। Certificates में उसे देखें या डाउनलोड करें। यह बाहरी संस्थान की मान्यता नहीं है।",
+      "gu": "બધા વિડિયો પાઠ પૂરા કરવાથી અભ્યાસક્રમની પરીક્ષા ખુલશે. સમય અને પ્રયાસ મર્યાદા સર્વર નક્કી કરે છે. જરૂરી ગુણ મેળવ્યા પછી આ પ્રોજેક્ટનું અભ્યાસક્રમ-પૂર્ણતા પ્રમાણપત્ર મળે છે. Certificates માં જુઓ અથવા ડાઉનલોડ કરો. આ બાહ્ય સંસ્થાની માન્યતા નથી."
+    },
+    "keywords": "certificate assessment exam quiz attempts download प्रमाणपत्र परीक्षा अंक પ્રમાણપત્ર પરીક્ષા ગુણ"
+  },
+  {
+    "id": "student-assignments",
+    "title": "Submit assignments and view your grades",
+    "roles": ["student"],
+    "url": "/dashboard/student?tab=assignments",
+    "text": "Open Assignments on your dashboard. Only assignments from your enrolled published courses are listed. Open an assignment, read its instructions/rubric and submit your answer before its deadline. You can see only your own submission, feedback and score. Other students' submissions and instructor reference keys are private. If AI grading is unavailable, your submission stays pending for instructor review.",
+    "translations": {
+      "hi": "Assignments में अपने पाठ्यक्रम का असाइनमेंट खोलें। निर्देश और मूल्यांकन मानदंड पढ़ें और अंतिम समय से पहले उत्तर जमा करें। केवल अपना उत्तर, प्रतिक्रिया और अंक दिखाई देंगे। AI उपलब्ध न हो तो शिक्षक की समीक्षा लंबित रहेगी।",
+      "gu": "Assignments માં તમારા અભ્યાસક્રમનું અસાઇનમેન્ટ ખોલો. સૂચનાઓ અને મૂલ્યાંકન માપદંડ વાંચો અને સમયમર્યાદા પહેલાં જવાબ આપો. માત્ર તમારો જવાબ, પ્રતિસાદ અને ગુણ દેખાશે. AI ઉપલબ્ધ ન હોય તો શિક્ષકની સમીક્ષા બાકી રહેશે."
+    },
+    "keywords": "assignment submit grade feedback due homework असाइनमेंट जमा उत्तर अंक સમયમર્યાદા અસાઇનમેન્ટ જવાબ ગુણ"
+  },
+  {
+    "id": "notes",
+    "title": "Create and save study notes",
+    "roles": ["student"],
+    "url": "/dashboard/student/notes",
+    "text": "Study tools > Notes supports pasted text and up to five text-based PDFs totalling 20 MB. Scanned/no-text or corrupt PDFs need OCR or replacement. For video notes, paste the transcript; video-link transcription is not implemented. Choose a study style/language, generate, review and save the result to your private account library. Offline templates are clearly labelled and are not live model output. Saved notes are isolated between accounts.",
+    "translations": {
+      "hi": "Study tools में Notes खोलें। पाठ चिपकाएँ या अधिकतम पाँच पाठ-आधारित PDF दें; कुल सीमा 20 MB है। स्कैन PDF को पहले OCR चाहिए। वीडियो के लिए ट्रांसक्रिप्ट दें। शैली और भाषा चुनें, नोट्स बनाएँ, जाँचें और अपनी निजी लाइब्रेरी में सहेजें।",
+      "gu": "Study tools માં Notes ખોલો. લખાણ પેસ્ટ કરો અથવા વધુમાં વધુ પાંચ લખાણવાળી PDF આપો; કુલ મર્યાદા 20 MB છે. સ્કેન PDF માટે પહેલાં OCR જરૂરી છે. વિડિયો માટે ટ્રાન્સક્રિપ્ટ આપો. શૈલી અને ભાષા પસંદ કરો, નોંધો બનાવો, તપાસો અને તમારી ખાનગી લાઇબ્રેરીમાં સાચવો."
+    },
+    "keywords": "notes pdf summarize revision library Hindi Gujarati नोट्स पीडीएफ सारांश भाषा નોંધો પીડીએફ સારાંશ ભાષા"
+  },
+  {
+    "id": "flashcards",
+    "title": "Practise flashcards with spaced repetition",
+    "roles": ["student"],
+    "url": "/dashboard/student/flashcards",
+    "text": "Create a question, answer and subject on the Flashcards page. Space reveals a focused card; 1-4 rate Again, Hard, Good or Easy. Your server-saved SuperMemo-2 schedule tracks ease, repetition, interval and due date. Reviews and due counts persist across reloads and belong only to your account.",
+    "translations": {
+      "hi": "Flashcards में प्रश्न, उत्तर और विषय जोड़ें। Space से उत्तर दिखाएँ; 1-4 से Again, Hard, Good या Easy चुनें। SuperMemo-2 की अगली समीक्षा तिथि और अंतराल खाते में सहेजे जाते हैं।",
+      "gu": "Flashcards માં પ્રશ્ન, જવાબ અને વિષય ઉમેરો. Space થી જવાબ જુઓ; 1-4 થી Again, Hard, Good અથવા Easy પસંદ કરો. SuperMemo-2 ની આગામી સમીક્ષા તારીખ અને અંતરાલ તમારા ખાતામાં સાચવાય છે."
+    },
+    "keywords": "flashcard srs memory recall spaced repetition कार्ड याद पुनरावृत्ति ફ્લેશકાર્ડ યાદ પુનરાવર્તન"
+  },
+  {
+    "id": "practice",
+    "title": "Create a revision quiz",
+    "roles": ["student"],
+    "url": "/dashboard/student/revision-quiz",
+    "text": "Study tools > Revision quiz lets you choose a topic, difficulty and exactly 3, 5 or 10 questions. This is study practice, not the server-owned certification assessment. Offline examples are labelled. Review explanations after your answers. Certification assessments must be opened from the enrolled course learning page after all lessons are complete.",
+    "translations": {
+      "hi": "Revision quiz में विषय, कठिनाई और 3, 5 या 10 प्रश्न चुनें। यह अभ्यास है; प्रमाणपत्र की परीक्षा अलग है और सभी पाठ पूरे करने के बाद पाठ्यक्रम से खुलती है।",
+      "gu": "Revision quiz માં વિષય, મુશ્કેલી અને 3, 5 અથવા 10 પ્રશ્ન પસંદ કરો. આ અભ્યાસ છે; પ્રમાણપત્રની પરીક્ષા અલગ છે અને બધા પાઠ પૂરા થયા પછી અભ્યાસક્રમમાંથી ખુલશે."
+    },
+    "keywords": "revision practice quiz questions अभ्यास सवाल क्विज़ અભ્યાસ પ્રશ્ન ક્વિઝ"
+  },
+  {
+    "id": "community",
+    "title": "Course discussion and resources",
+    "roles": ["student", "instructor", "admin"],
+    "url": "/help#community",
+    "text": "Enrolled students open Course community from their course learning page to ask/reply/vote on course discussions. A discussion belongs to one course; membership is enforced for replies and votes. Authors and course owners/admins can resolve their own permitted discussions. Instructors pin books, video links and official documentation in the course Resource hub. External links open only from saved HTTP(S) resources.",
+    "translations": {
+      "hi": "पाठ्यक्रम के learning पृष्ठ से Course community खोलें। संबंधित पाठ्यक्रम के सदस्य प्रश्न, उत्तर और वोट दे सकते हैं। शिक्षक Resource hub में पुस्तक, वीडियो और दस्तावेज़ जोड़ सकते हैं।",
+      "gu": "અભ્યાસક્રમના learning પૃષ્ઠ પરથી Course community ખોલો. સંબંધિત અભ્યાસક્રમના સભ્યો પ્રશ્ન, જવાબ અને મત આપી શકે છે. શિક્ષક Resource hub માં પુસ્તકો, વિડિયો અને દસ્તાવેજો ઉમેરી શકે છે."
+    },
+    "keywords": "discussion community resources books doubt question चर्चा सवाल संसाधन ચર્ચા સંસાધન પ્રશ્ન"
+  },
+  {
+    "id": "profile",
+    "title": "Profile and password recovery",
+    "roles": ["student", "instructor", "admin"],
+    "url": "/profile",
+    "text": "Open your account menu > My profile to update your name, biography, avatar and study preferences. Password recovery starts at Forgot password on the login page. The API always gives a generic reply; reset links are delivered only by configured email. Tokens expire and are single-use, and a successful reset revokes older sessions. Ask the administrator about unavailable mail delivery. Never put passwords or API keys in chat.",
+    "translations": {
+      "hi": "खाता मेनू से My profile खोलें। पासवर्ड भूलने पर login पृष्ठ का Forgot password चुनें। लिंक केवल ईमेल से मिलता है, सीमित समय तक और एक बार काम करता है। चैट में पासवर्ड या API key न भेजें।",
+      "gu": "ખાતા મેનૂમાંથી My profile ખોલો. પાસવર્ડ ભૂલાય તો login પૃષ્ઠ પર Forgot password પસંદ કરો. લિંક માત્ર ઇમેઇલથી મળે છે, મર્યાદિત સમય સુધી અને એક જ વાર કામ કરે છે. ચેટમાં પાસવર્ડ અથવા API key ન મોકલો."
+    },
+    "keywords": "profile password reset forgot login account प्रोफ़ाइल पासवर्ड खाता પ્રોફાઇલ પાસવર્ડ ખાતું"
+  },
+  {
+    "id": "privacy",
+    "title": "Assistant privacy and language support",
+    "roles": ["student", "instructor", "admin"],
+    "url": "/help#privacy",
+    "text": "The floating assistant uses server-filtered help articles plus only your authorized course/account summaries. Student and instructor identities come from the authenticated session, never a role typed into chat. Conversations are private to that account and role, with a 30-day expiry. The assistant cannot change permissions, expose reference keys, access another account or perform admin actions. With a configured LLM it can answer in the user's language, including Hindi, Gujarati and English. Without a working LLM it displays retrieved help articles and a clear availability notice.",
+    "translations": {
+      "hi": "सहायक केवल आपके खाते को अधिकृत जानकारी और मदद लेख उपयोग करता है। चैट में भूमिका बदलने से अनुमति नहीं बदलती। बातचीत निजी है और 30 दिन बाद हटती है। हिन्दी, ગુજરાતી या English में पूछें। LLM उपलब्ध न होने पर केवल संबंधित मदद लेख दिखेंगे।",
+      "gu": "સહાયક માત્ર તમારા ખાતાને અધિકૃત માહિતી અને મદદ લેખો વાપરે છે. ચેટમાં ભૂમિકા બદલવાથી પરવાનગી બદલાતી નથી. વાતચીત ખાનગી છે અને 30 દિવસ પછી દૂર થાય છે. हिन्दी, ગુજરાતી અથવા English માં પૂછો. LLM ઉપલબ્ધ ન હોય તો માત્ર સંબંધિત મદદ લેખો દેખાશે."
+    },
+    "keywords": "privacy permission role language chatbot chat Hindi Gujarati English सुरक्षा गोपनीय भाषा हिन्दी ગુજરાતી સુરક્ષા ગોપનીયતા ભાષા"
+  },
+  {
+    "id": "instructor-courses",
+    "title": "Create, edit and submit courses",
+    "roles": ["instructor", "admin"],
+    "url": "/dashboard/instructor/courses",
+    "text": "Instructors use Courses > Create course, add description/category/level/outcomes and appropriate lecture video URLs and durations, then save a draft. All courses are free; no pricing is configured. Submit a complete curriculum for administrator review. Only administrators publish. Editing a published course returns it to draft. The owner retains private lecture URLs while editing. Archiving retains learning records.",
+    "translations": {
+      "hi": "Courses में Create course से विवरण और सही वीडियो/अवधि जोड़ें। पहले ड्राफ्ट सहेजें और फिर समीक्षा के लिए भेजें। सभी पाठ्यक्रम निःशुल्क हैं। केवल एडमिन प्रकाशित करता है। प्रकाशित पाठ्यक्रम में बदलाव उसे फिर ड्राफ्ट बनाते हैं।",
+      "gu": "Courses માં Create course થી વિગતો અને યોગ્ય વિડિયો/સમય ઉમેરો. પહેલાં ડ્રાફ્ટ સાચવો અને પછી સમીક્ષા માટે મોકલો. બધા અભ્યાસક્રમો નિઃશુલ્ક છે. માત્ર એડમિન પ્રકાશિત કરે છે. પ્રકાશિત અભ્યાસક્રમમાં ફેરફાર તેને ફરી ડ્રાફ્ટ બનાવે છે."
+    },
+    "keywords": "create edit course publish draft moderation review instructor बनाएं पाठ्यक्रम शिक्षक प्रकाशित અભ્યાસક્રમ બનાવો શિક્ષક પ્રકાશિત"
+  },
+  {
+    "id": "instructor-classrooms",
+    "title": "Classroom codes, roster and resources",
+    "roles": ["instructor", "admin"],
+    "url": "/dashboard/instructor/courses",
+    "text": "Owned courses have server-generated classroom codes. Share a published course code with students, who join from their own dashboard for free. Students and Reviews tabs show only enrollments and reviews for courses you own. Resource hub opens per course to save recommended books, video links and official docs. You cannot modify another instructor's course, roster, quiz or assignments.",
+    "translations": {
+      "hi": "अपने प्रकाशित पाठ्यक्रम का classroom code विद्यार्थियों को दें। Students और Reviews में केवल अपने पाठ्यक्रम का डेटा देखें। Resource hub से पुस्तकें और आधिकारिक दस्तावेज़ जोड़ें। दूसरे शिक्षक के पाठ्यक्रम का डेटा उपलब्ध नहीं है।",
+      "gu": "તમારા પ્રકાશિત અભ્યાસક્રમનો classroom code વિદ્યાર્થીઓને આપો. Students અને Reviews માં માત્ર તમારા અભ્યાસક્રમનો ડેટા જુઓ. Resource hub થી પુસ્તકો અને અધિકૃત દસ્તાવેજો ઉમેરો. બીજા શિક્ષકના અભ્યાસક્રમનો ડેટા ઉપલબ્ધ નથી."
+    },
+    "keywords": "classroom code roster students reviews resources कक्षा विद्यार्थी संसाधन વર્ગ વિદ્યાર્થીઓ સંસાધન"
+  },
+  {
+    "id": "instructor-assignments",
+    "title": "Assignment studio and gradebook",
+    "roles": ["instructor", "admin"],
+    "url": "/dashboard/instructor?tab=assignments",
+    "text": "Assignment studio drafts an assignment, rubric and reference key using a configured LLM or labelled offline template. Review every field before deploying to an owned classroom, including deadline and maximum score. The gradebook lists submissions only for owned assignments and supports manual grading. Scores must be within 0..maxScore. AI grading requires working service credentials and otherwise remains pending. Reference keys are never included in student responses or assistant retrieval.",
+    "translations": {
+      "hi": "Assignment studio में असाइनमेंट, मानदंड और संदर्भ उत्तर का ड्राफ्ट बनाएँ। अपने वर्ग में भेजने से पहले सब जाँचें। Gradebook में अपने असाइनमेंट की जमा प्रतिक्रियाएँ देखें और निर्धारित सीमा में अंक दें। AI उपलब्ध न हो तो मैनुअल समीक्षा करें।",
+      "gu": "Assignment studio માં અસાઇનમેન્ટ, માપદંડ અને સંદર્ભ જવાબનો ડ્રાફ્ટ બનાવો. તમારા વર્ગમાં આપતા પહેલાં બધું તપાસો. Gradebook માં તમારા અસાઇનમેન્ટના જવાબો જુઓ અને નક્કી મર્યાદામાં ગુણ આપો. AI ઉપલબ્ધ ન હોય તો જાતે સમીક્ષા કરો."
+    },
+    "keywords": "assignment rubric gradebook grade reference marks शिक्षक मूल्यांकन अंक શિક્ષક મૂલ્યાંકન ગુણ"
+  },
+  {
+    "id": "instructor-quizzes",
+    "title": "Batch quizzes and reviewed question drafts",
+    "roles": ["instructor", "admin"],
+    "url": "/dashboard/instructor?tab=quizzes",
+    "text": "Create a batch quiz by choosing an owned course, topic, difficulty, timer and future due date. The stored quiz is available to enrolled students. Questions use a server-owned answer key and owned timed attempts. Generation mode identifies live LLM drafts or offline templates. Review generated questions before classroom use; do not treat generic templates as verified subject assessment.",
+    "translations": {
+      "hi": "अपने पाठ्यक्रम, विषय, कठिनाई, समय और अंतिम तिथि से batch quiz बनाएँ। ऑफलाइन या LLM ड्राफ्ट की पहचान दिखाई जाती है। विद्यार्थियों के लिए उपयोग से पहले प्रश्नों की जाँच करें।",
+      "gu": "તમારા અભ્યાસક્રમ, વિષય, મુશ્કેલી, સમય અને અંતિમ તારીખથી batch quiz બનાવો. ઓફલાઇન અથવા LLM ડ્રાફ્ટની ઓળખ દેખાડવામાં આવે છે. વિદ્યાર્થીઓ માટે વાપરતા પહેલાં પ્રશ્નો તપાસો."
+    },
+    "keywords": "batch quiz instructor timer due exam प्रश्न परीक्षा शिक्षक ક્વિઝ પરીક્ષા શિક્ષક"
+  },
+  {
+    "id": "admin-moderation",
+    "title": "Administrator course governance",
+    "roles": ["admin"],
+    "url": "/dashboard/admin/courses?status=pending",
+    "text": "Administrators open Course governance > Pending review to inspect instructor submissions. Preview a course, publish an acceptable curriculum, request edits with feedback, hide/disable access, or archive while preserving records. A pending filter in the URL persists on reload. Review ownership, lesson media and content suitability before publication. Students and instructors cannot publish themselves.",
+    "translations": {
+      "hi": "Course governance के Pending review में पाठ्यक्रम जाँचें। Preview देखें, उचित होने पर प्रकाशित करें, प्रतिक्रिया के साथ बदलाव माँगें, छिपाएँ या रिकॉर्ड सुरक्षित रखते हुए आर्काइव करें।",
+      "gu": "Course governance ના Pending review માં અભ્યાસક્રમ તપાસો. Preview જુઓ, યોગ્ય હોય તો પ્રકાશિત કરો, પ્રતિસાદ સાથે ફેરફાર માગો, છુપાવો અથવા રેકોર્ડ જાળવી આર્કાઇવ કરો."
+    },
+    "keywords": "admin governance moderation pending approve publish reject hide archive एडमिन समीक्षा अनुमोदन એડમિન સમીક્ષા મંજૂરી"
+  },
+  {
+    "id": "admin-accounts",
+    "title": "Administrator users and enrollment records",
+    "roles": ["admin"],
+    "url": "/dashboard/admin/users",
+    "text": "User management supports role/search filters and pagination, plus activating/deactivating non-admin users. Existing admin accounts cannot be deactivated through that action. Enrollment records show student, course, progress and enrollment date. The application has no payment gateway, purchases or revenue reporting. Use appropriate account permissions; the assistant provides read-only help and cannot change user access.",
+    "translations": {
+      "hi": "User management में भूमिका, खोज और पृष्ठों से खाते देखें। गैर-एडमिन खाते सक्रिय/निष्क्रिय कर सकते हैं। Enrollment records में विद्यार्थी, पाठ्यक्रम, प्रगति और तारीख देखें। भुगतान या राजस्व सुविधा नहीं है।",
+      "gu": "User management માં ભૂમિકા, શોધ અને પાનાંથી ખાતાં જુઓ. બિન-એડમિન ખાતાં સક્રિય/નિષ્ક્રિય કરી શકાય છે. Enrollment records માં વિદ્યાર્થી, અભ્યાસક્રમ, પ્રગતિ અને તારીખ જુઓ. ચુકવણી અથવા આવકની સુવિધા નથી."
+    },
+    "keywords": "admin users accounts enrollment activate deactivate records एडमिन उपयोगकर्ता खाते નોંધણી ખાતાં એડમિન"
+  }
+]

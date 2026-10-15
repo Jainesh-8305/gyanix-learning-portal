@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,7 +7,18 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import { Sparkles, GraduationCap, Presentation, User, Mail, Lock, Eye, EyeOff, ArrowRight, ShieldCheck } from 'lucide-react';
+import {
+  Sparkles,
+  GraduationCap,
+  Presentation,
+  User,
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+} from 'lucide-react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -67,14 +77,27 @@ export default function RegisterPage() {
         role: data.role,
       });
       setAuth(res.data.user, res.data.token);
-      toast.success('Welcome to Gyanix Academy! Your academic journey begins now.');
-      router.push(data.role === 'instructor' ? '/dashboard/instructor' : '/dashboard/student');
+      toast.success(
+        'Welcome to Gyanix Academy! Your academic journey begins now.',
+      );
+      router.push(
+        data.role === 'instructor'
+          ? '/dashboard/instructor'
+          : '/dashboard/student',
+      );
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
-      const msg = err?.response?.data?.message ?? (error instanceof Error ? error.message : 'Registration failed');
-      
-      if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('duplicate')) {
-        toast.error('An account with this email already exists. Redirecting to login…');
+      const msg =
+        err?.response?.data?.message ??
+        (error instanceof Error ? error.message : 'Registration failed');
+
+      if (
+        msg.toLowerCase().includes('already exists') ||
+        msg.toLowerCase().includes('duplicate')
+      ) {
+        toast.error(
+          'An account with this email already exists. Redirecting to login…',
+        );
         setTimeout(() => router.push('/login'), 1500);
       } else {
         toast.error(msg);
@@ -111,7 +134,11 @@ export default function RegisterPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" suppressHydrationWarning>
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            className="space-y-5"
+            suppressHydrationWarning
+          >
             {/* Role Selection Cards */}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider text-indigo-200/80 mb-2.5">
@@ -142,16 +169,27 @@ export default function RegisterPage() {
                           : 'border-indigo-400/20 bg-white/5 hover:border-indigo-400/40 hover:bg-white/8'
                       }`}
                     >
-                      <input type="radio" value={value} {...register('role')} className="sr-only" />
+                      <input
+                        type="radio"
+                        value={value}
+                        {...register('role')}
+                        id="register-role"
+                        aria-label="role"
+                        className="sr-only"
+                      />
                       <Icon
                         className={`w-6 h-6 mb-2 transition-colors ${
                           isSelected ? 'text-teal-300' : 'text-indigo-300/50'
                         }`}
                       />
-                      <span className={`text-sm font-semibold ${isSelected ? 'text-white' : 'text-indigo-100/80'}`}>
+                      <span
+                        className={`text-sm font-semibold ${isSelected ? 'text-white' : 'text-indigo-100/80'}`}
+                      >
                         {label}
                       </span>
-                      <span className="text-[11px] text-indigo-300/50 mt-0.5">{sub}</span>
+                      <span className="text-[11px] text-indigo-300/50 mt-0.5">
+                        {sub}
+                      </span>
                     </label>
                   );
                 })}
@@ -169,12 +207,18 @@ export default function RegisterPage() {
                 </div>
                 <input
                   {...register('name')}
+                  id="register-name"
+                  aria-label="Full name"
                   placeholder="e.g. Darshil Baladhiya"
                   suppressHydrationWarning
                   className="w-full pl-12 pr-4 py-3.5 rounded-xl glass-input text-sm placeholder-indigo-300/30 focus:outline-none transition"
                 />
               </div>
-              {errors.name && <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">{errors.name.message}</p>}
+              {errors.name && (
+                <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
 
             {/* Email */}
@@ -188,13 +232,19 @@ export default function RegisterPage() {
                 </div>
                 <input
                   {...register('email')}
+                  id="register-email"
+                  aria-label="email"
                   type="email"
                   placeholder="scholar@aetheris.edu"
                   suppressHydrationWarning
                   className="w-full pl-12 pr-4 py-3.5 rounded-xl glass-input text-sm placeholder-indigo-300/30 focus:outline-none transition"
                 />
               </div>
-              {errors.email && <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">{errors.email.message}</p>}
+              {errors.email && (
+                <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">
+                  {errors.email.message}
+                </p>
+              )}
             </div>
 
             {/* Password */}
@@ -208,6 +258,8 @@ export default function RegisterPage() {
                 </div>
                 <input
                   {...register('password')}
+                  id="register-password"
+                  aria-label="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Minimum 8 characters"
                   suppressHydrationWarning
@@ -219,10 +271,18 @@ export default function RegisterPage() {
                   className="absolute right-4 text-indigo-300/50 hover:text-indigo-200 transition-colors focus:outline-none cursor-pointer"
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showPassword ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
-              {errors.password && <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">{errors.password.message}</p>}
+              {errors.password && (
+                <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">
+                  {errors.password.message}
+                </p>
+              )}
             </div>
 
             {/* Confirm Password */}
@@ -236,6 +296,8 @@ export default function RegisterPage() {
                 </div>
                 <input
                   {...register('confirmPassword')}
+                  id="register-confirmPassword"
+                  aria-label="Confirm password"
                   type={showConfirm ? 'text' : 'password'}
                   placeholder="Repeat your password"
                   suppressHydrationWarning
@@ -247,11 +309,17 @@ export default function RegisterPage() {
                   className="absolute right-4 text-indigo-300/50 hover:text-indigo-200 transition-colors focus:outline-none cursor-pointer"
                   aria-label={showConfirm ? 'Hide password' : 'Show password'}
                 >
-                  {showConfirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  {showConfirm ? (
+                    <EyeOff className="w-5 h-5" />
+                  ) : (
+                    <Eye className="w-5 h-5" />
+                  )}
                 </button>
               </div>
               {errors.confirmPassword && (
-                <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">{errors.confirmPassword.message}</p>
+                <p className="text-red-400 text-xs mt-1.5 pl-1 font-medium">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
 
