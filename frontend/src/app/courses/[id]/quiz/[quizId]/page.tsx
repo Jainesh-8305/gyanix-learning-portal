@@ -231,7 +231,7 @@ export default function QuizPage() {
     try {
       const res = await api.post(`/quizzes/${quizId}/submit`, {
         answers,
-        attemptId: quiz.attemptId,
+        attemptId: quiz?.attemptId,
       });
       setResult(res.data.data);
       setSubmitted(true);

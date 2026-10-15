@@ -112,7 +112,7 @@ export default function CourseQuizHubPage() {
     try {
       const res = await api.post(`/ai/course-quiz/${courseId}/submit`, {
         answers,
-        attemptId: quiz.attemptId,
+        attemptId: quiz?.attemptId,
       });
       setResult(res.data.data);
       setSubmitted(true);
@@ -136,9 +136,21 @@ export default function CourseQuizHubPage() {
     }
   }
 
-  // Check if locked: only if backend explicitly reported locked and questions are not available
+  // Check if locked: backend reports 403, explicit isLocked, or lecture completion notice
   const isLocked =
-    Boolean(quizError?.response?.data?.isLocked) && !quiz?.questions?.length;
+    (quizError?.response?.status === 403 ||
+      Boolean(quizError?.response?.data?.isLocked) ||
+      Boolean(
+        quizError?.response?.data?.message
+          ?.toLowerCase()
+          .includes('lecture'),
+      ) ||
+      Boolean(
+        quizError?.response?.data?.message
+          ?.toLowerCase()
+          .includes('assessment'),
+      )) &&
+    !quiz?.questions?.length;
 
   const totalLessons =
     quizError?.response?.data?.totalLessons ||
@@ -376,6 +388,77 @@ export default function CourseQuizHubPage() {
     );
   }
 
+  // ── Error Fallback Screen (e.g. 401, 404, or API issues) ──────────
+  if (quizError && !isLocked) {
+    const errorMsg =
+      quizError?.response?.data?.message ||
+      quizError?.message ||
+      'Unable to load the assessment for this course.';
+    return (
+      <div className="min-h-[calc(100vh-4rem)] bg-transparent p-4 sm:p-6 lg:p-8 flex items-center justify-center relative overflow-hidden">
+        <div className="max-w-md w-full mx-auto space-y-6 relative z-10">
+          <div className="glass-card rounded-3xl p-8 text-center border border-rose-500/30 shadow-2xl space-y-5">
+            <div className="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-400/40 text-rose-300 flex items-center justify-center mx-auto text-2xl shadow-lg">
+              ⚠️
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-white">Assessment Notice</h2>
+              <p className="text-xs text-indigo-200/70 leading-relaxed">
+                {errorMsg}
+              </p>
+            </div>
+            <div className="pt-2 flex gap-3">
+              <Link
+                href={`/courses/${courseId}`}
+                className="flex-1 py-3 px-4 rounded-xl border border-indigo-500/20 bg-white/5 hover:bg-white/10 text-xs font-semibold text-indigo-200 text-center transition flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Course Details</span>
+              </Link>
+              <Link
+                href={`/courses/${courseId}/learn`}
+                className="flex-1 py-3 px-4 rounded-xl glow-btn-primary text-xs font-bold text-center transition flex items-center justify-center gap-2"
+              >
+                <PlayCircle className="w-4 h-4 text-teal-300" />
+                <span>Go to Lectures</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Empty Questions Guard ──────────────────────────────────────
+  if (!quiz || !questions.length) {
+    return (
+      <div className="min-h-[calc(100vh-4rem)] bg-transparent p-4 sm:p-6 lg:p-8 flex items-center justify-center relative overflow-hidden">
+        <div className="max-w-md w-full mx-auto space-y-6 relative z-10">
+          <div className="glass-card rounded-3xl p-8 text-center border border-indigo-500/30 shadow-2xl space-y-5">
+            <div className="w-16 h-16 rounded-2xl bg-indigo-500/15 border border-indigo-400/40 text-teal-300 flex items-center justify-center mx-auto text-2xl shadow-lg">
+              🎯
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold text-white">Assessment Pending</h2>
+              <p className="text-xs text-indigo-200/70 leading-relaxed">
+                No active assessment questions were found for this course. Please return to the course lectures.
+              </p>
+            </div>
+            <div className="pt-2 flex gap-3">
+              <Link
+                href={`/courses/${courseId}/learn`}
+                className="flex-1 py-3 px-4 rounded-xl glow-btn-primary text-xs font-bold text-center transition flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Lectures</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ── Quiz Active Taking Screen ──────────────────────────────────
   const q = questions[currentQ];
   const totalQ = questions.length;
@@ -456,9 +539,9 @@ export default function CourseQuizHubPage() {
 
       <div className="max-w-2xl w-full mx-auto space-y-6 relative z-10">
         <p className="text-sm text-indigo-200">
-          {quiz.generationMode === 'offline'
+          {quiz?.generationMode === 'offline'
             ? 'Offline template assessment - generic practice questions; not live AI.'
-            : quiz.generationMode === 'live'
+            : quiz?.generationMode === 'live'
               ? 'Questions drafted using OpenAI; scored against a saved answer key.'
               : 'Saved assessment; scored against the instructor answer key.'}
         </p>
