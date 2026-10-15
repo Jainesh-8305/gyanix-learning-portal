@@ -1,33 +1,33 @@
-const router = require("express").Router();
-const { protect } = require("../middleware/auth");
-const { fail } = require("../utils/http");
-const Enrollment = require("../models/Enrollment");
-const Assignment = require("../models/Assignment");
-const Quiz = require("../models/Quiz");
-const Attempt = require("../models/QuizAttempt");
-const Certificate = require("../models/Certificate");
-const Flashcard = require("../models/Flashcard");
+const router = require('express').Router();
+const { protect } = require('../middleware/auth');
+const { fail } = require('../utils/http');
+const Enrollment = require('../models/Enrollment');
+const Assignment = require('../models/Assignment');
+const Quiz = require('../models/Quiz');
+const Attempt = require('../models/QuizAttempt');
+const Certificate = require('../models/Certificate');
+const Flashcard = require('../models/Flashcard');
 router.use(protect);
-router.get("/student", async (req, res, next) => {
+router.get('/student', async (req, res, next) => {
   try {
-    if (req.user.role !== "student")
-      throw fail(403, "Student account required");
+    if (req.user.role !== 'student')
+      throw fail(403, 'Student account required');
     const enrollments = await Enrollment.find({ student: req.user._id })
       .select(
-        "course progressPercentage completedLessons isCompleted certificate lastAccessedAt createdAt",
+        'course progressPercentage completedLessons isCompleted certificate lastAccessedAt createdAt',
       )
       .populate({
-        path: "course",
+        path: 'course',
         select:
-          "title category level thumbnail totalLessons totalDuration status classroomCode instructor",
-        populate: { path: "instructor", select: "name" },
+          'title category level thumbnail totalLessons totalDuration status classroomCode instructor',
+        populate: { path: 'instructor', select: 'name' },
       })
-      .sort("-lastAccessedAt")
+      .sort('-lastAccessedAt')
       .limit(100)
       .lean();
     const available = enrollments.filter((e) => e.course);
     const ids = available
-      .filter((e) => e.course.status === "published")
+      .filter((e) => e.course.status === 'published')
       .map((e) => e.course._id);
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
@@ -50,28 +50,28 @@ router.get("/student", async (req, res, next) => {
           maxScore: 1,
           submissions: { $elemMatch: { student: req.user._id } },
         })
-        .populate("course", "title")
-        .sort("-createdAt")
+        .populate('course', 'title')
+        .sort('-createdAt')
         .limit(100)
         .lean(),
       Quiz.find({ course: { $in: ids }, isCertification: false })
-        .select("title course timeLimit maxAttempts dueDate generationMode")
-        .populate("course", "title")
-        .sort("-createdAt")
+        .select('title course timeLimit maxAttempts dueDate generationMode')
+        .populate('course', 'title')
+        .sort('-createdAt')
         .limit(100)
         .lean(),
-      Attempt.find({ student: req.user._id, status: "submitted" })
-        .select("quiz percentage updatedAt")
-        .populate("quiz", "title")
-        .sort("-updatedAt")
+      Attempt.find({ student: req.user._id, status: 'submitted' })
+        .select('quiz percentage updatedAt')
+        .populate('quiz', 'title')
+        .sort('-updatedAt')
         .limit(30)
         .lean(),
       Certificate.find({
         student: req.user._id,
         assessmentAttempt: { $ne: null },
       })
-        .select("certificateId courseTitle completedAt pdfUrl")
-        .sort("-completedAt")
+        .select('certificateId courseTitle completedAt pdfUrl')
+        .sort('-completedAt')
         .limit(100)
         .lean(),
       Flashcard.countDocuments({ student: req.user._id }),
@@ -83,7 +83,7 @@ router.get("/student", async (req, res, next) => {
         student: req.user._id,
         reviewedAt: { $gte: today },
       }),
-      Attempt.countDocuments({ student: req.user._id, status: "submitted" }),
+      Attempt.countDocuments({ student: req.user._id, status: 'submitted' }),
       Certificate.countDocuments({
         student: req.user._id,
         assessmentAttempt: { $ne: null },
